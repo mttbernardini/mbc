@@ -20,7 +20,7 @@
 const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
 
 // wait a minute, do we really need this? what about fprintf(stdout, "%x", data) or something similar?
-char* raw_to_hex(uint8_t* raw, size_t raw_size) {
+char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	/**
 	 * Converts raw data into an hexadecimal string.
 	 * @ret  `hex` string
@@ -47,7 +47,7 @@ char* raw_to_hex(uint8_t* raw, size_t raw_size) {
 }
 
 
-uint8_t* hex_to_raw(char* hex, size_t* raw_size_p) {
+uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 	/**
 	 * Converts hexadecimal string into raw data.
 	 * @ret  `raw` data array
@@ -67,7 +67,7 @@ uint8_t* hex_to_raw(char* hex, size_t* raw_size_p) {
 
 	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
 		if (hex[i] >= '0' && hex[i] <= '9')
-			raw[i/2] += (hex[i] - '0')	     << (shift ? 4 : 0);
+			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
 		else if (hex[i] >= 'a' && hex[i] <= 'f')
 			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
 		else if (hex[i] >= 'A' && hex[i] <= 'F')
@@ -161,7 +161,7 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 }
 
 
-void codec(uint8_t* data, char* xkey, char* okey, size_t data_size, bool do_enc) {
+void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, bool do_enc) {
 	/**
 	 * Decodes an array of raw bytes, using 2 keys.
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
@@ -199,7 +199,7 @@ void codec(uint8_t* data, char* xkey, char* okey, size_t data_size, bool do_enc)
 }
 
 
-void mbc_core(bool do_enc, char* user_key, bool hex_mode) {
+void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	/**
 	 * Main function with common parts, chunk division and key preparations
 	 * @ret TODO: return something
@@ -212,8 +212,8 @@ void mbc_core(bool do_enc, char* user_key, bool hex_mode) {
 	oct_key = make_oct_key(user_key);
 
 #if DEBUG_ON == 1
-	fprintf(stderr, "Encoding? %d\n", do_enc); // DEBUG
-	fprintf(stderr, "octal key: %s\n", raw_to_hex(oct_key, strlen(oct_key)));
+	fprintf(stderr, "Encoding? %d\n", do_enc);
+	fprintf(stderr, "Octal key: %s\n", raw_to_hex(oct_key, strlen(oct_key)));
 #endif
 
 	buffer  = malloc(CHUNK_SIZE);
@@ -224,8 +224,8 @@ void mbc_core(bool do_enc, char* user_key, bool hex_mode) {
 		hex_key = fit_hex_key(user_key, bytes_read);
 
 #if DEBUG_ON == 1
-		fprintf(stderr, "Reading chunk %d of %d bytes\n", chunk_n+1, bytes_read);  //DEBUG
-		fprintf(stderr, "hex key for this chunk: %s\n", raw_to_hex(hex_key, strlen(hex_key))); //DEBUG
+		fprintf(stderr, "Reading chunk %d of %d bytes\n", chunk_n+1, bytes_read);
+		fprintf(stderr, "Hex key for this chunk: %s\n", raw_to_hex(hex_key, strlen(hex_key)));
 #endif
 
 		codec(buffer, hex_key, oct_key, bytes_read, do_enc);
