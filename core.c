@@ -161,9 +161,9 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 }
 
 
-void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, bool do_enc) {
+void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size) {
 	/**
-	 * Decodes an array of raw bytes, using 2 keys.
+	 * Encodes an array of raw bytes, using 2 keys.
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is encoded
 	 */
@@ -176,19 +176,19 @@ void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, 
 	okey_size = strlen(okey);
 
 #if DEBUG_ON==1
-	fprintf(stderr, "Raw data before codec:\n %s\n", raw_to_hex(data, data_size));
+	fprintf(stderr, "Raw data before encoding:\n %s\n", raw_to_hex(data, data_size));
 #endif
 
-	// XOR PART - if encoding
-	if (do_enc) for (i = 0; i < data_size; i++) {
+	// XOR PART
+	for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
 
 #if DEBUG_ON==1
-	if (do_enc) fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
+	fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
 #endif
 
-	// MISC PART - common
+	// MISC PART
 	for (i = 0; i < data_size; i++) {
 		for (j = 0; j < okey_size; j++) {
 			l_bit = (okey[j] & 0x70) >> 4;
@@ -203,13 +203,49 @@ void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, 
 	fprintf(stderr, "Raw data after MISC:\n %s\n", raw_to_hex(data, data_size));
 #endif
 
-	// XOR PART - if decoding
-	if (!do_enc) for (i = 0; i < data_size; i++) {
+}
+
+
+void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size) {
+	/**
+	 * Decodes an array of raw bytes, using 2 keys.
+	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
+	 * @post `data` is decoded
+	 */
+
+	size_t xkey_size, okey_size;
+	register size_t i, j;
+	uint8_t l_bit, r_bit;
+
+	xkey_size = strlen(xkey);
+	okey_size = strlen(okey);
+
+#if DEBUG_ON==1
+	fprintf(stderr, "Raw data before codec:\n %s\n", raw_to_hex(data, data_size));
+#endif
+
+	// MISC PART
+	for (i = 0; i < data_size; i++) {
+		for (j = okey_size-1; j; j--) {
+			l_bit = (okey[j] & 0x70) >> 4;
+			r_bit = (okey[j] & 0x07);
+
+			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
+				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
+		}
+	}
+
+#if DEBUG_ON==1
+	fprintf(stderr, "Raw data after MISC:\n %s\n", raw_to_hex(data, data_size));
+#endif
+
+	// XOR PART
+	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
 
 #if DEBUG_ON==1
-	if (!do_enc) fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
+	fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
 #endif
 
 }
@@ -244,7 +280,10 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 		fprintf(stderr, "Hex key for this chunk: %s\n", raw_to_hex(hex_key, strlen(hex_key)));
 #endif
 
-		codec(buffer, hex_key, oct_key, bytes_read, do_enc);
+		if(do_enc)
+			encoder(buffer, hex_key, oct_key, bytes_read);
+		else
+			decoder(buffer, hex_key, oct_key, bytes_read);
 
 		fwrite(buffer, bytes_read, 1, stdout);
 		free(hex_key);
