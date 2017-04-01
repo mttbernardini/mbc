@@ -63,7 +63,7 @@ uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 
 	hex_size	= strlen(hex);
 	*raw_size_p = hex_size/2;
-	raw	         = calloc(1, *raw_size_p);
+	raw	        = calloc(1, *raw_size_p);
 
 	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
 		if (hex[i] >= '0' && hex[i] <= '9')
@@ -175,10 +175,18 @@ void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, 
 	xkey_size = strlen(xkey);
 	okey_size = strlen(okey);
 
+#if DEBUG_ON==1
+	fprintf(stderr, "Raw data before codec:\n %s\n", raw_to_hex(data, data_size));
+#endif
+
 	// XOR PART - if encoding
 	if (do_enc) for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
+
+#if DEBUG_ON==1
+	if (do_enc) fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
+#endif
 
 	// MISC PART - common
 	for (i = 0; i < data_size; i++) {
@@ -191,10 +199,18 @@ void codec(uint8_t* data, const char* xkey, const char* okey, size_t data_size, 
 		}
 	}
 
+#if DEBUG_ON==1
+	fprintf(stderr, "Raw data after MISC:\n %s\n", raw_to_hex(data, data_size));
+#endif
+
 	// XOR PART - if decoding
 	if (!do_enc) for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
+
+#if DEBUG_ON==1
+	if (!do_enc) fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
+#endif
 
 }
 
