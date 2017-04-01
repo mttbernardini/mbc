@@ -175,18 +175,18 @@ void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	xkey_size = strlen(xkey);
 	okey_size = strlen(okey);
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data before encoding:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data before encoding:   %s\n", raw_to_hex(data, data_size));
+	#endif
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data after XOR:         %s\n", raw_to_hex(data, data_size));
+	#endif
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -199,9 +199,9 @@ void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 		}
 	}
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data after MISC:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data after MISC:        %s\n", raw_to_hex(data, data_size));
+	#endif
 
 }
 
@@ -220,9 +220,9 @@ void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	xkey_size = strlen(xkey);
 	okey_size = strlen(okey);
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data before codec:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data before decoding:   %s\n", raw_to_hex(data, data_size));
+	#endif
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -235,18 +235,18 @@ void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 		}
 	}
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data after MISC:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data after MISC:        %s\n", raw_to_hex(data, data_size));
+	#endif
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
 
-#if DEBUG_ON==1
-	fprintf(stderr, "Raw data after XOR:\n %s\n", raw_to_hex(data, data_size));
-#endif
+	#if DEBUG_ON==1
+		fprintf(stderr, "Raw data after XOR:         %s\n", raw_to_hex(data, data_size));
+	#endif
 
 }
 
@@ -263,10 +263,10 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	// prepare oct key
 	oct_key = make_oct_key(user_key);
 
-#if DEBUG_ON == 1
-	fprintf(stderr, "Encoding? %d\n", do_enc);
-	fprintf(stderr, "Octal key: %s\n", raw_to_hex(oct_key, strlen(oct_key)));
-#endif
+	#if DEBUG_ON == 1
+		fprintf(stderr, "Encoding? %d\n", do_enc);
+		fprintf(stderr, "Octal key: %s\n", raw_to_hex(oct_key, strlen(oct_key)));
+	#endif
 
 	buffer  = malloc(CHUNK_SIZE);
 	chunk_n = 0;
@@ -275,17 +275,17 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 
 		hex_key = fit_hex_key(user_key, bytes_read);
 
-#if DEBUG_ON == 1
-		fprintf(stderr, "Reading chunk %d of %d bytes\n", chunk_n+1, bytes_read);
-		fprintf(stderr, "Hex key for this chunk: %s\n", raw_to_hex(hex_key, strlen(hex_key)));
-#endif
+		#if DEBUG_ON == 1
+			fprintf(stderr, "< chunk %d | %d bytes read >\n", chunk_n+1, bytes_read);
+			fprintf(stderr, "Hex key:   %s\n", raw_to_hex(hex_key, strlen(hex_key)));
+		#endif
 
 		if(do_enc)
 			encoder(buffer, hex_key, oct_key, bytes_read);
 		else
 			decoder(buffer, hex_key, oct_key, bytes_read);
 
-		fwrite(buffer, bytes_read, 1, stdout);
+		fwrite(buffer, 1, bytes_read, stdout);
 		free(hex_key);
 
 		chunk_n++;
