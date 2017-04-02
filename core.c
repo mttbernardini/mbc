@@ -4,19 +4,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#define DEBUG_ON 0
-
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)\
-	(byte & 0x80 ? '1' : '0'),\
-	(byte & 0x40 ? '1' : '0'),\
-	(byte & 0x20 ? '1' : '0'),\
-	(byte & 0x10 ? '1' : '0'),\
-	(byte & 0x08 ? '1' : '0'),\
-	(byte & 0x04 ? '1' : '0'),\
-	(byte & 0x02 ? '1' : '0'),\
-	(byte & 0x01 ? '1' : '0')
-
 const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
 
 // wait a minute, do we really need this? what about fprintf(stdout, "%x", data) or something similar?
@@ -168,22 +155,14 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit, mask;
+	uint8_t l_bit, r_bit;
 
 	xkey_size = strlen(xkey);
-
-	#if DEBUG_ON>0
-		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
-	#endif
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
-
-	#if DEBUG_ON==1
-		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
-	#endif
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -191,25 +170,10 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 			l_bit = (okey[j] & 0x70) >> 4;
 			r_bit = (okey[j] & 0x07);
 
-			mask = (0x1 << l_bit) ^ (0x1 << r_bit);
-
-			#if DEBUG_ON==2
-				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  input (*)\n"BYTE_TO_BINARY_PATTERN"  mask =\n", BYTE_TO_BINARY(data[i]), BYTE_TO_BINARY(mask));
-			#endif
-
 			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= mask;
-
-				#if DEBUG_ON==2
-					fprintf(stderr, BYTE_TO_BINARY_PATTERN"  output\n\n", BYTE_TO_BINARY(data[i]));
-				#endif
+				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
 		}
 	}
-
-	#if DEBUG_ON>0
-		fprintf(stderr, "%s    after MISC\n", raw_to_hex(data, data_size));
-	#endif
-
 }
 
 
@@ -222,13 +186,9 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit, mask;
+	uint8_t l_bit, r_bit;
 
 	xkey_size = strlen(xkey);
-
-	#if DEBUG_ON>0
-		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
-	#endif
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -236,34 +196,15 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 			l_bit = (okey[j] & 0x70) >> 4;
 			r_bit = (okey[j] & 0x07);
 
-			mask = (0x1 << l_bit) ^ (0x1 << r_bit);
-
-			#if DEBUG_ON==2
-				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  input (*)\n"BYTE_TO_BINARY_PATTERN"  mask =\n", BYTE_TO_BINARY(data[i]), BYTE_TO_BINARY(mask));
-			#endif
-
 			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= mask;
-
-			#if DEBUG_ON==2
-				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  output\n\n", BYTE_TO_BINARY(data[i]));
-			#endif
+				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
 		}
 	}
-
-	#if DEBUG_ON>0
-		fprintf(stderr, "%s    after reverse MISC\n", raw_to_hex(data, data_size));
-	#endif
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
-
-	#if DEBUG_ON==1
-		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
-	#endif
-
 }
 
 
@@ -280,22 +221,12 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	// prepare oct key
 	oct_key = make_oct_key(user_key, &oct_key_size);
 
-	#if DEBUG_ON == 1
-		fprintf(stderr, "Encoding? %d\n", do_enc);
-		fprintf(stderr, "Octal key: %s\n", raw_to_hex(oct_key, strlen(oct_key)));
-	#endif
-
 	buffer  = malloc(CHUNK_SIZE);
 	chunk_n = 0;
 
 	while (bytes_read = fread(buffer, 1, CHUNK_SIZE, stdin)) {
 
 		hex_key = fit_hex_key(user_key, bytes_read);
-
-		#if DEBUG_ON == 1
-			fprintf(stderr, "< chunk %d | %d bytes read >\n", chunk_n+1, bytes_read);
-			fprintf(stderr, "Hex key:   %s\n", raw_to_hex(hex_key, strlen(hex_key)));
-		#endif
 
 		if(do_enc)
 			encoder(buffer, hex_key, oct_key, bytes_read, oct_key_size);
