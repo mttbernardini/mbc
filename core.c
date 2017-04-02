@@ -78,27 +78,25 @@ uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 }
 
 
-char* make_oct_key(const unsigned char* key) {
+uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	/**
 	 * Generates the octal key to be used in misc phase from the encryption key.
 	 * @ret  `okey` is the new octal key
 	 * @pre  `key` length > 0 (otherwhise malloc() is undef behavior)
-	 * @post `okey` contains swap-map bytes in format -xxx-yyy
+	 * @post `okey` contains swap-map bytes in format -xxx-yyy, `*okey_size_p` is the size of `okey`
 	 */
 
 	size_t key_size;
 	register size_t i;
-	unsigned char* okey;
+	uint8_t* okey;
 
-	key_size = strlen(key);
-	okey = malloc(key_size+1);
-	okey[key_size] = 0x0; // NULL terminator
+	key_size     = strlen(key);
+	*okey_size_p = key_size;
+	okey         = malloc(key_size);
 
 	for (i = 0; i < key_size; i++) {
 		okey[i] = (key[i] & 0x70) + ((key[i] >> 1) & 0x07);
 		if (key[i] & 0x1) okey[i] = ~okey[i];
-		// TODO: remove unswapping bytes in the first places
-		if (key[i] == 0)  okey[i] = 0x80;  // NULL bytes are not allowed inside array
 	}
 
 	/****
@@ -161,19 +159,18 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 }
 
 
-void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size) {
+void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
 	/**
 	 * Encodes an array of raw bytes, using 2 keys.
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is encoded
 	 */
 
-	size_t xkey_size, okey_size;
+	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit, r_bit;
 
 	xkey_size = strlen(xkey);
-	okey_size = strlen(okey);
 
 	#if DEBUG_ON==1
 		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
@@ -207,19 +204,18 @@ void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 }
 
 
-void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size) {
+void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
 	/**
 	 * Decodes an array of raw bytes, using 2 keys.
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is decoded
 	 */
 
-	size_t xkey_size, okey_size;
+	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit, r_bit;
 
 	xkey_size = strlen(xkey);
-	okey_size = strlen(okey);
 
 	#if DEBUG_ON==1
 		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
@@ -260,11 +256,12 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	 * @ret TODO: return something
 	 */
 
-	uint8_t *oct_key, *hex_key, *buffer;
-	size_t bytes_read, chunk_n;
+	uint8_t *oct_key, *buffer;
+	char* hex_key;
+	size_t bytes_read, oct_key_size, chunk_n;
 
 	// prepare oct key
-	oct_key = make_oct_key(user_key);
+	oct_key = make_oct_key(user_key, &oct_key_size);
 
 	#if DEBUG_ON == 1
 		fprintf(stderr, "Encoding? %d\n", do_enc);
@@ -284,9 +281,9 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 		#endif
 
 		if(do_enc)
-			encoder(buffer, hex_key, oct_key, bytes_read);
+			encoder(buffer, hex_key, oct_key, bytes_read, oct_key_size);
 		else
-			decoder(buffer, hex_key, oct_key, bytes_read);
+			decoder(buffer, hex_key, oct_key, bytes_read, oct_key_size);
 
 		fwrite(buffer, 1, bytes_read, stdout);
 		free(hex_key);
