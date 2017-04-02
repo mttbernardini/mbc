@@ -39,8 +39,8 @@ char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	hex[raw_size*2] = '\0';
 
 	for (i = 0, j = 0; i < raw_size; i++, j += 2) {
-		hex[j]	 = hex_map[(raw[i] >> 4) & 0x07];
-		hex[j+1] = hex_map[ raw[i]	     & 0x07];
+		hex[j]	 = hex_map[(raw[i] >> 4) & 0x0F];
+		hex[j+1] = hex_map[ raw[i]	     & 0x0F];
 	}
 
 	return hex;
