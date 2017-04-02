@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define DEBUG_ON 1
+#define DEBUG_ON 0
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)\
@@ -168,15 +168,15 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit;
+	uint8_t l_bit, r_bit, mask;
 
 	xkey_size = strlen(xkey);
 
-	#if DEBUG_ON==1
+	#if DEBUG_ON>0
 		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
 	#endif
 
-/*	// XOR PART
+	// XOR PART
 	for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
@@ -184,7 +184,6 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	#if DEBUG_ON==1
 		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
 	#endif
-*/
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -192,12 +191,22 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 			l_bit = (okey[j] & 0x70) >> 4;
 			r_bit = (okey[j] & 0x07);
 
+			mask = (0x1 << l_bit) ^ (0x1 << r_bit);
+
+			#if DEBUG_ON==2
+				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  input (*)\n"BYTE_TO_BINARY_PATTERN"  mask =\n", BYTE_TO_BINARY(data[i]), BYTE_TO_BINARY(mask));
+			#endif
+
 			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
+				data[i] ^= mask;
+
+				#if DEBUG_ON==2
+					fprintf(stderr, BYTE_TO_BINARY_PATTERN"  output\n\n", BYTE_TO_BINARY(data[i]));
+				#endif
 		}
 	}
 
-	#if DEBUG_ON==1
+	#if DEBUG_ON>0
 		fprintf(stderr, "%s    after MISC\n", raw_to_hex(data, data_size));
 	#endif
 
@@ -213,30 +222,39 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit;
+	uint8_t l_bit, r_bit, mask;
 
 	xkey_size = strlen(xkey);
 
-	#if DEBUG_ON==1
+	#if DEBUG_ON>0
 		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
 	#endif
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
-		for (j = okey_size-1; j; j--) {
+		for (j = okey_size-1; j < okey_size; j--) {
 			l_bit = (okey[j] & 0x70) >> 4;
 			r_bit = (okey[j] & 0x07);
 
+			mask = (0x1 << l_bit) ^ (0x1 << r_bit);
+
+			#if DEBUG_ON==2
+				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  input (*)\n"BYTE_TO_BINARY_PATTERN"  mask =\n", BYTE_TO_BINARY(data[i]), BYTE_TO_BINARY(mask));
+			#endif
+
 			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
+				data[i] ^= mask;
+
+			#if DEBUG_ON==2
+				fprintf(stderr, BYTE_TO_BINARY_PATTERN"  output\n\n", BYTE_TO_BINARY(data[i]));
+			#endif
 		}
 	}
 
-	#if DEBUG_ON==1
+	#if DEBUG_ON>0
 		fprintf(stderr, "%s    after reverse MISC\n", raw_to_hex(data, data_size));
 	#endif
 
-/*
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
@@ -245,7 +263,6 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	#if DEBUG_ON==1
 		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
 	#endif
-*/
 
 }
 
