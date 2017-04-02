@@ -6,64 +6,6 @@
 
 const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
 
-// wait a minute, do we really need this? what about fprintf(stdout, "%x", data) or something similar?
-char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
-	/**
-	 * Converts raw data into an hexadecimal string.
-	 * @ret  `hex` string
-	 * @pre  `raw` contains raw bytes, `raw_size` > 0 (malloc() undef behavior otherwhise)
-	 * @post `hex` length is even, containing only uppercase hex chars (see map)
-	 */
-
-	uint8_t* hex;
-	register size_t i, j;
-
-	const uint8_t hex_map[16] = {
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-	};
-
-	hex = malloc(raw_size*2 + 1);
-	hex[raw_size*2] = '\0';
-
-	for (i = 0, j = 0; i < raw_size; i++, j += 2) {
-		hex[j]	 = hex_map[(raw[i] >> 4) & 0x0F];
-		hex[j+1] = hex_map[ raw[i]	     & 0x0F];
-	}
-
-	return hex;
-}
-
-
-uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
-	/**
-	 * Converts hexadecimal string into raw data.
-	 * @ret  `raw` data array
-	 * @pre  `hex` length should be even and > 0, containing valid lower/uppercase hex digits
-	 * @post `*raw_size_p` contains the size of `raw`
-	 */
-
-	// might TODO: don't require even length, add leading 0
-
-	uint8_t* raw;
-	size_t hex_size;
-	register size_t i, shift;
-
-	hex_size	= strlen(hex);
-	*raw_size_p = hex_size/2;
-	raw	        = calloc(1, *raw_size_p);
-
-	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
-		if (hex[i] >= '0' && hex[i] <= '9')
-			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
-		else if (hex[i] >= 'a' && hex[i] <= 'f')
-			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
-		else if (hex[i] >= 'A' && hex[i] <= 'F')
-			raw[i/2] += (hex[i] - 'A' + 0xA) << (shift ? 4 : 0);
-	}
-
-	return raw;
-}
-
 
 uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	/**
@@ -143,6 +85,65 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 
 	return fkey;
 
+}
+
+
+// wait a minute, do we really need this? what about fprintf(stdout, "%x", data) or something similar?
+char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
+	/**
+	 * Converts raw data into an hexadecimal string.
+	 * @ret  `hex` string
+	 * @pre  `raw` contains raw bytes, `raw_size` > 0 (malloc() undef behavior otherwhise)
+	 * @post `hex` length is even, containing only uppercase hex chars (see map)
+	 */
+
+	uint8_t* hex;
+	register size_t i, j;
+
+	const uint8_t hex_map[16] = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+	};
+
+	hex = malloc(raw_size*2 + 1);
+	hex[raw_size*2] = '\0';
+
+	for (i = 0, j = 0; i < raw_size; i++, j += 2) {
+		hex[j]	 = hex_map[(raw[i] >> 4) & 0x0F];
+		hex[j+1] = hex_map[ raw[i]	     & 0x0F];
+	}
+
+	return hex;
+}
+
+
+uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
+	/**
+	 * Converts hexadecimal string into raw data.
+	 * @ret  `raw` data array
+	 * @pre  `hex` length should be even and > 0, containing valid lower/uppercase hex digits
+	 * @post `*raw_size_p` contains the size of `raw`
+	 */
+
+	// might TODO: don't require even length, add leading 0
+
+	uint8_t* raw;
+	size_t hex_size;
+	register size_t i, shift;
+
+	hex_size	= strlen(hex);
+	*raw_size_p = hex_size/2;
+	raw	        = calloc(1, *raw_size_p);
+
+	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
+		if (hex[i] >= '0' && hex[i] <= '9')
+			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
+		else if (hex[i] >= 'a' && hex[i] <= 'f')
+			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
+		else if (hex[i] >= 'A' && hex[i] <= 'F')
+			raw[i/2] += (hex[i] - 'A' + 0xA) << (shift ? 4 : 0);
+	}
+
+	return raw;
 }
 
 
