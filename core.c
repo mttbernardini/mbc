@@ -128,7 +128,7 @@ char* make_oct_key(const unsigned char* key) {
 }
 
 
-char* fit_hex_key(const char* key, size_t max_key_size) {
+char* fit_hex_key_xdlolxdlolxdlol(const char* key, size_t max_key_size) {
 	/**
 	 * XORES the key against itself if it's longer than `max_key_size`
 	 * @ret  `fkey` is the new key
