@@ -176,17 +176,18 @@ void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	okey_size = strlen(okey);
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data before encoding:   %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
 	#endif
 
-	// XOR PART
+/*	// XOR PART
 	for (i = 0; i < data_size; i++) {
 			data[i] ^= xkey[i % xkey_size];
 	}
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data after XOR:         %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
 	#endif
+*/
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
@@ -200,7 +201,7 @@ void encoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	}
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data after MISC:        %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    after MISC\n", raw_to_hex(data, data_size));
 	#endif
 
 }
@@ -221,7 +222,7 @@ void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	okey_size = strlen(okey);
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data before decoding:   %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    input data\n", raw_to_hex(data, data_size));
 	#endif
 
 	// MISC PART
@@ -236,17 +237,19 @@ void decoder(uint8_t* data, const char* xkey, const char* okey, size_t data_size
 	}
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data after MISC:        %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    after reverse MISC\n", raw_to_hex(data, data_size));
 	#endif
 
+/*
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
 
 	#if DEBUG_ON==1
-		fprintf(stderr, "Raw data after XOR:         %s\n", raw_to_hex(data, data_size));
+		fprintf(stderr, "%s    after XOR\n", raw_to_hex(data, data_size));
 	#endif
+*/
 
 }
 
