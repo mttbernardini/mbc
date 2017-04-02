@@ -6,6 +6,8 @@
 
 const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
 
+static char* user_key;
+static uint8_t* oct_key;
 
 uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	/**
@@ -14,6 +16,8 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	 * @pre  `key` length > 0 (otherwhise malloc() is undef behavior)
 	 * @post `okey` contains swap-map bytes in format -xxx-yyy, `*okey_size_p` is the size of `okey`
 	 */
+
+	/*********** CONVERT: USE GLOBAL KEYS ***********/
 
 	size_t key_size;
 	register size_t i;
@@ -33,21 +37,18 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	-- RATIONALE --
 
 	EXTRACT KEY BYTE:
-	key[i]            : -xxxyyyL >> 1 =
-	                    0-xxxyyy &
-	key mask 1 (0x07) : 00000111 =
-	okey[i]           = 00000yyy
-
 	key[i]            : -xxxyyyL &
 	key mask 1 (0x70) : 01110000 =
-	okey[i]          += 0xxx0000 =
-	okey[i]           : 0xxx0yyy
+	okey[i]           = 0xxx0000 
+	
+	key[i]            : -xxxyyyL >> 1 =
+	                    0-xxxyyy &
+	key mask 2 (0x07) : 00000111 =
+	okey[i]          += 00000yyy =
+	okey[i]           = 0xxx0yyy
 
 	IF key[i] & 0x1:
 	okey[i] = ~okey[i];
-
-	IF okey[i] == 0:
-	okey[i] = 10000000
 
 	****/
 
@@ -63,6 +64,8 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 	 * @post `fkey` length <= `max_key_size`
 	 */
 
+	/*********** CONVERT: USE GLOBAL KEYS ***********/
+
 	size_t key_size;
 	register size_t i;
 	char* fkey;
@@ -71,7 +74,7 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 
 	if (key_size > max_key_size) {
 		fkey = malloc(max_key_size + 1);
-		fkey[max_key_size] = '\0'; // NULL terminator
+		fkey[max_key_size] = '\0';
 		memcpy(fkey, key, max_key_size);
 
 		for (i = max_key_size; i < max_key_size; i++)
@@ -79,7 +82,7 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 
 	} else {
 		fkey = malloc(key_size + 1);
-		fkey[key_size] = '\0'; // NULL terminator
+		fkey[key_size] = '\0';
 		memcpy(fkey, key, key_size);
 	}
 
@@ -88,7 +91,6 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 }
 
 
-// wait a minute, do we really need this? what about fprintf(stdout, "%x", data) or something similar?
 char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	/**
 	 * Converts raw data into an hexadecimal string.
@@ -96,6 +98,8 @@ char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	 * @pre  `raw` contains raw bytes, `raw_size` > 0 (malloc() undef behavior otherwhise)
 	 * @post `hex` length is even, containing only uppercase hex chars (see map)
 	 */
+	
+	/*********** CONVERT: DON'T USE MAP, CHECK `snprintf` ***********/
 
 	uint8_t* hex;
 	register size_t i, j;
@@ -124,8 +128,6 @@ uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 	 * @post `*raw_size_p` contains the size of `raw`
 	 */
 
-	// might TODO: don't require even length, add leading 0
-
 	uint8_t* raw;
 	size_t hex_size;
 	register size_t i, shift;
@@ -153,6 +155,8 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is encoded
 	 */
+
+	/*********** CONVERT: USE GLOBAL KEYS ***********/
 
 	size_t xkey_size;
 	register size_t i, j;
@@ -184,6 +188,8 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is decoded
 	 */
+	
+	/*********** CONVERT: USE GLOBAL KEYS *************/
 
 	size_t xkey_size;
 	register size_t i, j;
@@ -207,66 +213,3 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 		data[i] ^= xkey[i % xkey_size];
 	}
 }
-
-
-void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
-	/**
-	 * Main function with common parts, chunk division and key preparations
-	 * @ret TODO: return something
-	 */
-
-	uint8_t *oct_key, *buffer;
-	char* hex_key;
-	size_t bytes_read, oct_key_size, chunk_n;
-
-	// prepare oct key
-	oct_key = make_oct_key(user_key, &oct_key_size);
-
-	buffer  = malloc(CHUNK_SIZE);
-	chunk_n = 0;
-
-	while (bytes_read = fread(buffer, 1, CHUNK_SIZE, stdin)) {
-
-		hex_key = fit_hex_key(user_key, bytes_read);
-
-		if(do_enc)
-			encoder(buffer, hex_key, oct_key, bytes_read, oct_key_size);
-		else
-			decoder(buffer, hex_key, oct_key, bytes_read, oct_key_size);
-
-		fwrite(buffer, 1, bytes_read, stdout);
-		free(hex_key);
-
-		chunk_n++;
-	}
-
-	free(oct_key);
-	free(buffer);
-}
-
-
-
-/*** TEST ***/
-int main(int argc, char* argv[]) {
-
-	if (argc < 3) exit(1);
-
-	int do_enc = (argv[1][0] == '1');
-
-	mbc_core(do_enc, argv[2], 0);
-
-	fprintf(stderr, "\n");
-
-	return 0;
-
-}
-
-// ./test 1 ciao
-
-/* TO EXPORT */
-/*void mbc_encode(uint8_t* data, char* key, size_t data_size, bool hex_mode) {
-
-}
-void mbc_decode(uint8_t* data, char* key, size_t data_size, bool hex_mode) {
-
-}*/
