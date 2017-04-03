@@ -167,7 +167,7 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
-		
+		data[i] ^= xkey[i % xkey_size];
 	}
 
 	// MISC PART
