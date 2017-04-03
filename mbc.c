@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
 
@@ -13,17 +13,15 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	 * Generates the octal key to be used in misc phase from the encryption key.
 	 * @ret  `okey` is the new octal key
 	 * @pre  `key` length > 0 (otherwhise malloc() is undef behavior)
-	 * @post `okey` contains swap-map bytes in format -xxx-yyy, `*okey_size_p` is the size of `okey`
 	 */
 
 	/*********** CONVERT: USE GLOBAL KEYS ***********/
 
-	size_t key_size;
 	register size_t i;
+	size_t key_size;
 	uint8_t* okey;
 
 	key_size     = strlen(key);
-	*okey_size_p = key_size;
 	okey         = malloc(key_size);
 
 	for (i = 0; i < key_size; i++) {
@@ -31,23 +29,26 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 		if (key[i] & 0x1) okey[i] = ~okey[i];
 	}
 
+	*okey_size_p = key_size;
+
 	/****
 
 	-- RATIONALE --
 
-	EXTRACT KEY BYTE:
-	key[i]            : -xxxyyyL &
-	key mask 1 (0x70) : 01110000 =
-	okey[i]           = 0xxx0000 
+	EXTRACT KEY BITS:
+	key[i]            : -xxxyyy- &
+    bit mask L (0x70) : 01110000 =
+	okey[i]           = 0xxx0000
 	
-	key[i]            : -xxxyyyL >> 1 =
+	key[i]            : -xxxyyy- >> 1 =
 	                    0-xxxyyy &
-	key mask 2 (0x07) : 00000111 =
+	bit mask R (0x07) : 00001110 =
 	okey[i]          += 00000yyy =
-	okey[i]           = 0xxx0yyy
+	okey[i]           : 0xxx0yyy
 
-	IF key[i] & 0x1:
-	okey[i] = ~okey[i];
+	IF (key[i] & 0x01):
+	okey[i] = ~okey[i]
+	(specular positions)
 
 	****/
 
@@ -151,6 +152,7 @@ uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
 	/**
 	 * Encodes an array of raw bytes, using 2 keys.
+	 * TODO: @ret Should we return the data instead of modifying it directly?
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is encoded
 	 */
@@ -159,23 +161,23 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit;
+	uint8_t l_bit_pos, r_bit_pos;
 
 	xkey_size = strlen(xkey);
 
 	// XOR PART
 	for (i = 0; i < data_size; i++) {
-			data[i] ^= xkey[i % xkey_size];
+		
 	}
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
 		for (j = 0; j < okey_size; j++) {
-			l_bit = (okey[j] & 0x70) >> 4;
-			r_bit = (okey[j] & 0x07);
+			l_bit_pos = (okey[j] & 0x70) >> 4;
+			r_bit_pos = (okey[j] & 0x07);
 
-			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
+			if (((data[i] >> l_bit_pos) & 0x1) != ((data[i] >> r_bit_pos) & 0x1))
+				data[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
 		}
 	}
 }
@@ -192,18 +194,18 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 
 	size_t xkey_size;
 	register size_t i, j;
-	uint8_t l_bit, r_bit;
+	uint8_t l_bit_pos, r_bit_pos;
 
 	xkey_size = strlen(xkey);
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
 		for (j = okey_size-1; j < okey_size; j--) {
-			l_bit = (okey[j] & 0x70) >> 4;
-			r_bit = (okey[j] & 0x07);
+			l_bit_pos = (okey[j] & 0x70) >> 4;
+			r_bit_pos = (okey[j] & 0x07);
 
-			if (((data[i] >> l_bit) & 0x1) != ((data[i] >> r_bit) & 0x1))
-				data[i] ^= (0x1 << l_bit) ^ (0x1 << r_bit);
+			if (((data[i] >> l_bit_pos) & 0x1) != ((data[i] >> r_bit_pos) & 0x1))
+				data[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
 		}
 	}
 
