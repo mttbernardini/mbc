@@ -7,10 +7,10 @@
  * -- SEMANTICS --
  * char*      NULL terminated string (array of char)
  * uint8_t*   array of raw bytes (should provide length)
- * 
+ *
  * TODO: Is it a good idea to use typedefs for semantic types?
  * e.g. string for strings or swap_map for '-xxx-yyy' pattern bytes
- * 
+ *
  */
 
 
@@ -19,10 +19,10 @@
  * size_t is used for counters (caution when reverse looping, size_t is unsigned)
  * char* is used for null-terminated strings (not uint8_t*)
  * stdint.h types are preferred
- * 
+ *
  */
 
- 
+
 /**
  * -- USAGE --
  * Gotta work on that...
@@ -30,13 +30,26 @@
  *    mbc_set_options(...);
  *    mbc_set_user_key(...);
  *    mbc_encode(...); / mbc_decode(...);
- *    mbc_reset(...);
+ *    //mbc_reset(...); // not needed
  *    mbc_encode(...); / mbc_decode(...);
- *    mbc_reset(...);
+ *    //mbc_reset(...); // not needed
  *    mbc_encode(...); / mbc_decode(...);
  *    ...
  *    mbc_free(...);
  */
+
+ /**
+  * -- RATIONALE --
+  * 1.   options are set (using mbc_set_options)
+  * 2.   user_key is set (using mbc_set_user_key)
+  * 2.1. oct_key is calculated (using make_oct_key)
+  * 3.   encode/decode is invoked (using mbc_encode/mbc_decode)
+  * 3.1. hex encoding/decoding is performed according to options (using raw_to_hex or hex_to_raw)
+  * 3.2. hex_key is calculated (using fit_hex_key)
+  * 3.3. actual encoding/decoding is performed (using encoder/decoder)
+  * 4.   other encodings/decodings can be done, even threaded, using same user_key and options
+  * 5.   allocated memory (oct_key, user_key) is freed (using mbc_free)
+  */
 
 
 /* ##### PROTOTIPES BEGIN HERE ##### */
@@ -45,16 +58,16 @@
 
 static char* user_key;
 static size_t user_key_len;
-static uint8_t* hex_key;
+static uint8_t* hex_key;       // should not be global because will be calculated at encode/decode time and is specific to encode/decode instance on stack
 static size_t hex_key_len;
 static uint8_t* oct_key;
 static size_t oct_key_len;
 
 /* TODO: Structs for keys? We'll probably need this.
- * Something like: 
+ * Something like:
  *     struct {
  *         char* key;
- *         char* cur_pos;
+ *         char* cur_pos; // not needed
  *         size_t len;
  *     } user_key;
  */
@@ -107,23 +120,23 @@ static int8_t* hex_to_raw(const char* hex, size_t* raw_size_p);
 // NB: the following functions need wrapper functions which take care of calculating the oct_key
 /**
  * Encodes/decodes an array of raw bytes, using 2 keys.
- * @pre  data_size > 0, xkey length <= data_size (use fit_hex_key before, otherwhise overflow bytes are ignored)
+ * @pre  data_size > 0, xkey_size <= data_size (overflow bytes are ignored, use fit_hex_key on caller before)
  * @post data is encoded/decoded
  */
-void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size);
-void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size);
+void encoder(uint8_t* data, const uint8_t* xkey, const uint8_t* okey, size_t data_size, size_t xkey_size, size_t okey_size);
+void decoder(uint8_t* data, const uint8_t* xkey, const uint8_t* okey, size_t data_size, size_t xkey_size, size_t okey_size);
 
 
 
 /* PUBLIC */
 
 /**
- * Sets the value of user_key and calculates oct_key and hex_key.
+ * Sets the value of user_key and calculates oct_key.
  * @ret true if success, false otherwise
  */
-bool mbc_set_user_key(char* key, size_t len);
+bool mbc_set_user_key(const char* key, size_t len);
 /* ^ TODO: maybe allow for raw data user key too (uint8_t)? */
-// issue: hex_key cannot be calculated if data size is unknown (how to handle cycling?)
+// should the key be cloned for safety?
 
 /**
  * Sets the options for encoding/decoding.
@@ -133,19 +146,28 @@ bool mbc_set_options(bool encode_hex_input, bool encode_hex_output, bool decode_
  // do really C libraries set options like this? how interesting
 
 /**
- * Encode data.
- * @ret encoded data (as char* if options.encode_hex_output, as uint8_t* otherwise)
- * @pre data is casted to char* if options.encode_hex_input, otherwise uint8_t*
+ * Encodes data.
+ * @ret  encoded data
+ * @pre  data is casted to char* if options.encode_hex_input, otherwise uint8_t*
+ * @post if options.encode_hex_output: encoded data is casted to char*
+ *       else:
+ *          if options.encode_hex_input: size of encoded data is half of data, encoded data casted to uint8_t*
+ *          else:                        size of encoded data is the same of data, encoded data is casted to uint8_t*
  */
 void* mbc_encode(void* data, size_t len);
 
 /**
- * Encode data.
- * @ret encoded data (as char* if options.decode_hex_output, as uint8_t* otherwise)
- * @pre data is casted to char* if options.decode_hex_input, otherwise uint8_t*
+ * Decodes data.
+ * @ret  decoded data
+ * @pre  data is casted to char* if options.decode_hex_input, otherwise uint8_t*
+ * @post if options.decode_hex_output: decoded data is casted to char*
+ *       else:
+ *          if options.decode_hex_input: size of decoded data is half of data, decoded data casted to uint8_t*
+ *          else:                        size of decoded data is the same of data, decoded data is casted to uint8_t*
  */
 void* mbc_decode(void* data, size_t len);
 
+// not needed
 /**
  * Resets the algorithm, to be used when the data to encode/decode is finished
  * new data needs to be encoded/decoded.
@@ -154,6 +176,6 @@ void* mbc_decode(void* data, size_t len);
 void mbc_reset();
 
 /**
- * Frees any dinamically allocated variable (e.g. global keys)
+ * Frees any dinamically allocated variable (global keys)
  */
 void mbc_free();
