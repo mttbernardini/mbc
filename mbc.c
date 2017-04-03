@@ -39,7 +39,7 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 	key[i]            : -xxxyyy- &
     bit mask L (0x70) : 01110000 =
 	okey[i]           = 0xxx0000
-	
+
 	key[i]            : -xxxyyy- >> 1 =
 	                    0-xxxyyy &
 	bit mask R (0x07) : 00001110 =
@@ -77,7 +77,7 @@ char* fit_hex_key(const char* key, size_t max_key_size) {
 		fkey[max_key_size] = '\0';
 		memcpy(fkey, key, max_key_size);
 
-		for (i = max_key_size; i < max_key_size; i++)
+		for (i = max_key_size; i < key_size; i++)
 			fkey[i % max_key_size] ^= key[i];
 
 	} else {
@@ -98,7 +98,7 @@ char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	 * @pre  `raw` contains raw bytes, `raw_size` > 0 (malloc() undef behavior otherwhise)
 	 * @post `hex` length is even, containing only uppercase hex chars (see map)
 	 */
-	
+
 	/*********** CONVERT: DON'T USE MAP, CHECK `snprintf` ***********/
 
 	uint8_t* hex;
@@ -189,7 +189,7 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
 	 * @post `data` is decoded
 	 */
-	
+
 	/*********** CONVERT: USE GLOBAL KEYS *************/
 
 	size_t xkey_size;
