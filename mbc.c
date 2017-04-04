@@ -54,41 +54,6 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 }
 
 
-char* fit_hex_key(const char* key, size_t max_key_size) {
-	/**
-	 * XORES the key against itself if it's longer than `max_key_size`
-	 * @ret  `fkey` is the new key
-	 * @pre  `key` length > 0, `max_key_size` > 0
-	 * @post `fkey` length <= `max_key_size`
-	 */
-
-	/*********** CONVERT: USE GLOBAL KEYS ***********/
-
-	size_t key_size;
-	register size_t i;
-	char* fkey;
-
-	key_size = strlen(key);
-
-	if (key_size > max_key_size) {
-		fkey = malloc(max_key_size + 1);
-		fkey[max_key_size] = '\0';
-		memcpy(fkey, key, max_key_size);
-
-		for (i = max_key_size; i < key_size; i++)
-			fkey[i % max_key_size] ^= key[i];
-
-	} else {
-		fkey = malloc(key_size + 1);
-		fkey[key_size] = '\0';
-		memcpy(fkey, key, key_size);
-	}
-
-	return fkey;
-
-}
-
-
 char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
 	/**
 	 * Converts raw data into an hexadecimal string.
