@@ -70,9 +70,11 @@ static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	hex = malloc(hex_size);
 
 	if (uppercase)
-		for (i = 0; i < hex_size; i++) sprintf(hex, "%2X", raw[i]);
+		for (i = 0; i < hex_size; i++)
+			sprintf(hex, "%2X", raw[i]);
 	else
-		for (i = 0; i < hex_size; i++) sprintf(hex, "%2x", raw[i]);
+		for (i = 0; i < hex_size; i++)
+			sprintf(hex, "%2x", raw[i]);
 
 	hex[hex_size] = '\0';
 
@@ -82,23 +84,17 @@ static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	uint8_t* raw;
 	size_t hex_size;
-	register size_t i, shift;
+	register size_t i;
 
-	hex_size	= strlen(hex);
+	hex_size = strlen(hex);
 	*raw_size_ptr = hex_size/2;
-	raw	        = calloc(1, *raw_size_ptr);
+	raw = malloc(*raw_size_ptr);
 
-	// TODO: use sscanf()
-	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
-		if (hex[i] >= '0' && hex[i] <= '9')
-			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
-		else if (hex[i] >= 'a' && hex[i] <= 'f')
-			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
-		else if (hex[i] >= 'A' && hex[i] <= 'F')
-			raw[i/2] += (hex[i] - 'A' + 0xA) << (shift ? 4 : 0);
+	for (i = 0; i < raw_size; i++) {
+		sscanf(hex + i*2, "%2x" SCNu8, raw + i);
 	}
 
-	return raw;
+	return hex;
 }
 
 
