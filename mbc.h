@@ -1,3 +1,6 @@
+#ifndef _MBC_H_
+#define _MBC_H_
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -41,3 +44,5 @@ void* mbc_decode(void* data, size_t data_size, size_t* out_data_size);
  * Frees any dynamically allocated variables (basically the global keys).
  */
 void mbc_free();
+
+#endif
