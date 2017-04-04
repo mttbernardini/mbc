@@ -141,7 +141,7 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	return ddata;
 }
 
-static char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
+char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	char* hex;
 	size_t hex_size;
 	register size_t i;
@@ -159,7 +159,7 @@ static char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase)
 	return hex;
 }
 
-static uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_p) {
+uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_p) {
 	uint8_t* raw;
 	size_t hex_size;
 	register size_t i, shift;
