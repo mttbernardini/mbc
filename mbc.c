@@ -3,8 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-const uint32_t CHUNK_SIZE = 32 << 10;  // split data in chunks of 32kiB
-
 static char* user_key;
 static uint8_t* oct_key;
 
