@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include "mbc.h"
 
-/* ^ TODO: check includes. */
-
 /***********************
  **      PRIVATE      **
  ***********************/
@@ -26,10 +24,11 @@ static bool make_oct_key();
 static bool make_oct_key() {
 	register size_t i;
 	size_t key_size;
-	uint8_t* okey;
+	uint8_t *okey, *key;
 
-	key_size     = strlen(key);
-	okey         = malloc(key_size);
+	key      = user_key;
+	key_size = user_key_len;
+	okey     = malloc(key_size);
 
 	for (i = 0; i < key_size; i++) {
 		okey[i] = (key[i] & 0x70) + ((key[i] >> 1) & 0x07);
