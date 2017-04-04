@@ -14,7 +14,6 @@ static uint8_t* user_key;
 static size_t user_key_len;
 static uint8_t* oct_key;
 static size_t oct_key_len;
-static enum mbc_options user_options;
 
 /**
  * Generates the octal key (to be used in misc phase) from the user key.
@@ -22,22 +21,6 @@ static enum mbc_options user_options;
  * @post Global `oct_key` is now the octal key.
  */
 static bool make_oct_key();
-
-/**
- * Converts raw data into an hexadecimal string.
- * @ret  NULL-terminated hexadecimal string.
- * @pre  `raw` contains raw bytes, `raw_size` is the size of `raw` and should be > 0.
- * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
- */
-static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
-
-/**
- * Converts hexadecimal string into raw data.
- * @ret  Raw data array.
- * @pre  `hex` is a NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters, and its length should be even and > 0.
- * @post `*raw_size_ptr` contains the size of the raw data returned.
- */
-static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr);
 
 
 // FIXME: use global variables
@@ -59,57 +42,10 @@ static bool make_oct_key() {
 	return okey;
 }
 
-static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
-	char* hex;
-	size_t hex_size;
-	register size_t i;
-
-	hex_size = raw_size * 2 + 1;
-	hex = malloc(hex_size);
-
-	if (uppercase)
-		for (i = 0; i < hex_size; i++) sprintf(hex, "%2F", raw[i]);
-	else
-		for (i = 0; i < hex_size; i++) snprintf(hex, "%2f", raw[i]);
-
-	hex[hex_size] = '\0';
-
-	return hex;
-}
-
-static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
-	uint8_t* raw;
-	size_t hex_size;
-	register size_t i, shift;
-
-	hex_size	= strlen(hex);
-	*raw_size_p = hex_size/2;
-	raw	        = calloc(1, *raw_size_p);
-
-	// TODO: use sscanf()
-	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
-		if (hex[i] >= '0' && hex[i] <= '9')
-			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
-		else if (hex[i] >= 'a' && hex[i] <= 'f')
-			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
-		else if (hex[i] >= 'A' && hex[i] <= 'F')
-			raw[i/2] += (hex[i] - 'A' + 0xA) << (shift ? 4 : 0);
-	}
-
-	return raw;
-}
-
 
 /**********************
  **      PUBLIC      **
  **********************/
-
-enum mbc_options {
-	MBC_ENCODE_HEX_IN  = 0x1,
-	MBC_ENCODE_HEX_OUT = 0x2,
-	MBC_DECODE_HEX_IN  = 0x4,
-	MBC_DECODE_HEX_OUT = 0x8
-};
 
 bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 
@@ -118,11 +54,10 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 	return true;
 }
 
-bool mbc_set_options(enum mbc_options options) {
+void mbc_free() {
 
 	/* TODO */
 
-	return true;
 }
 
 // FIXME
@@ -193,8 +128,42 @@ void* mbc_decode(void* data, size_t data_size, size_t* out_data_size) {
 	}
 }
 
-void mbc_free() {
+static char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
+	char* hex;
+	size_t hex_size;
+	register size_t i;
 
-	/* TODO */
+	hex_size = raw_size * 2 + 1;
+	hex = malloc(hex_size);  //FIXME: handle malloc error
 
+	if (uppercase)
+		for (i = 0; i < hex_size; i++) sprintf(hex, "%2F", raw[i]);
+	else
+		for (i = 0; i < hex_size; i++) snprintf(hex, "%2f", raw[i]);
+
+	hex[hex_size] = '\0';
+
+	return hex;
+}
+
+static uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_p) {
+	uint8_t* raw;
+	size_t hex_size;
+	register size_t i, shift;
+
+	hex_size	= strlen(hex);
+	*raw_size_p = hex_size/2;
+	raw	        = calloc(1, *raw_size_p);  //FIXME: handle calloc error
+
+	// TODO: use sscanf()
+	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
+		if (hex[i] >= '0' && hex[i] <= '9')
+			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
+		else if (hex[i] >= 'a' && hex[i] <= 'f')
+			raw[i/2] += (hex[i] - 'a' + 0xA) << (shift ? 4 : 0);
+		else if (hex[i] >= 'A' && hex[i] <= 'F')
+			raw[i/2] += (hex[i] - 'A' + 0xA) << (shift ? 4 : 0);
+	}
+
+	return raw;
 }
