@@ -23,7 +23,6 @@ static size_t oct_key_len;
 static bool make_oct_key();
 
 
-// FIXME: use global variables
 static bool make_oct_key() {
 	register size_t i;
 	size_t key_size;
@@ -37,9 +36,12 @@ static bool make_oct_key() {
 		if (key[i] & 0x1) okey[i] = ~okey[i];
 	}
 
-	*okey_size_p = key_size;
+	// NB: what if unbind this function from the global vars
+	//     and have set_user_key do that?
+	oct_key     = okey;
+	oct_key_len = key_size;
 
-	return okey;
+	return true;
 }
 
 
@@ -48,16 +50,21 @@ static bool make_oct_key() {
  **********************/
 
 bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
+	user_key = malloc(key_size);
+	if (user_key == NULL)
+		return false;
 
-	/* TODO */
+	memcpy(user_key, key, key_size);
+	user_key_len = key_size;
 
-	return true;
+	return make_oct_key();
 }
 
 void mbc_free() {
-
-	/* TODO */
-
+	free(user_key);
+	free(oct_key);
+	user_key_len = 0;
+	oct_key_len  = 0;
 }
 
 // FIXME
