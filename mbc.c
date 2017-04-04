@@ -158,6 +158,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	return hex;
 }
 
+// FIXME: don't require even-length input, as now this is a public function and should be more tolerant.
 uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_p) {
 	uint8_t* raw;
 	size_t hex_size;
