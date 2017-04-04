@@ -1,7 +1,6 @@
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-
-/* ^ TODO: check includes. */
 
 enum mbc_options;
 
