@@ -2,19 +2,44 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include "mbc.h"
 
-static char* user_key;
+/* ^ TODO: check includes. */
+
+/***********************
+ **      PRIVATE      **
+ ***********************/
+
+static uint8_t* user_key;
+static size_t user_key_len;
 static uint8_t* oct_key;
+static size_t oct_key_len;
+static enum mbc_options user_options;
 
-uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
-	/**
-	 * Generates the octal key to be used in misc phase from the encryption key.
-	 * @ret  `okey` is the new octal key
-	 * @pre  `key` length > 0 (otherwhise malloc() is undef behavior)
-	 */
+/**
+ * Generates the octal key (to be used in misc phase) from the user key.
+ * @pre  Global `user_key` contains a valid user key.
+ * @post Global `oct_key` is now the octal key.
+ */
+static bool make_oct_key();
 
-	/*********** CONVERT: USE GLOBAL KEYS ***********/
+/**
+ * Converts raw data into an hexadecimal string.
+ * @ret  NULL-terminated hexadecimal string.
+ * @pre  `raw` contains raw bytes, `raw_size` is the size of `raw` and should be > 0.
+ * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
+ */
+static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
 
+/**
+ * Converts hexadecimal string into raw data.
+ * @ret  Raw data array.
+ * @pre  `hex` is a NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters, and its length should be even and > 0.
+ * @post `*raw_size_ptr` contains the size of the raw data returned.
+ */
+static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr);
+
+static bool make_oct_key() {
 	register size_t i;
 	size_t key_size;
 	uint8_t* okey;
@@ -29,68 +54,30 @@ uint8_t* make_oct_key(const char* key, size_t* okey_size_p) {
 
 	*okey_size_p = key_size;
 
-	/****
-
-	-- RATIONALE --
-
-	EXTRACT KEY BITS:
-	key[i]            : -xxxyyy- &
-    bit mask L (0x70) : 01110000 =
-	okey[i]           = 0xxx0000
-
-	key[i]            : -xxxyyy- >> 1 =
-	                    0-xxxyyy &
-	bit mask R (0x07) : 00001110 =
-	okey[i]          += 00000yyy =
-	okey[i]           : 0xxx0yyy
-
-	IF (key[i] & 0x01):
-	okey[i] = ~okey[i]
-	(specular positions)
-
-	****/
-
 	return okey;
 }
 
+static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
+	char* hex;
+	size_t hex_size;
+	register size_t i;
 
-char* raw_to_hex(const uint8_t* raw, size_t raw_size) {
-	/**
-	 * Converts raw data into an hexadecimal string.
-	 * @ret  `hex` string
-	 * @pre  `raw` contains raw bytes, `raw_size` > 0 (malloc() undef behavior otherwhise)
-	 * @post `hex` length is even, containing only uppercase hex chars (see map)
-	 */
+	hex_size = raw_size * 2 + 1;
+	hex = malloc(hex_size);
 
-	/*********** CONVERT: DON'T USE MAP, CHECK `snprintf` ***********/
-
-	uint8_t* hex;
-	register size_t i, j;
-
-	const uint8_t hex_map[16] = {
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-	};
-
-	hex = malloc(raw_size*2 + 1);
-	hex[raw_size*2] = '\0';
-
-	for (i = 0, j = 0; i < raw_size; i++, j += 2) {
-		hex[j]	 = hex_map[(raw[i] >> 4) & 0x0F];
-		hex[j+1] = hex_map[ raw[i]	     & 0x0F];
-	}
+	if (uppercase)
+		for (i = 0; i < hex_size; i++) sprintf(hex, "%2F", raw[i]);
+	else
+		for (i = 0; i < hex_size; i++) snprintf(hex, "%2f", raw[i]);
+	
+	hex[hex_size] = '\0';
 
 	return hex;
 }
 
+/* ANYTHING AFTER THIS STILL NEEDS TO BE CHECKED */
 
-uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
-	/**
-	 * Converts hexadecimal string into raw data.
-	 * @ret  `raw` data array
-	 * @pre  `hex` length should be even and > 0, containing valid lower/uppercase hex digits
-	 * @post `*raw_size_p` contains the size of `raw`
-	 */
-
+static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 	uint8_t* raw;
 	size_t hex_size;
 	register size_t i, shift;
@@ -112,16 +99,32 @@ uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 }
 
 
-void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
-	/**
-	 * Encodes an array of raw bytes, using 2 keys.
-	 * TODO: @ret Should we return the data instead of modifying it directly?
-	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
-	 * @post `data` is encoded
-	 */
+/**********************
+ **      PUBLIC      **
+ **********************/
 
-	/*********** CONVERT: USE GLOBAL KEYS ***********/
+enum mbc_options {
+	MBC_ENCODE_HEX_IN  = 0x1,
+	MBC_ENCODE_HEX_OUT = 0x2,
+	MBC_DECODE_HEX_IN  = 0x4,
+	MBC_DECODE_HEX_OUT = 0x8
+};
 
+bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
+	
+	/* TODO */
+
+	return true;
+}
+
+bool mbc_set_options(enum mbc_options options) {
+	
+	/* TODO */
+	
+	return true;
+}
+
+void* mbc_encode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
 	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit_pos, r_bit_pos;
@@ -146,15 +149,7 @@ void encoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 }
 
 
-void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
-	/**
-	 * Decodes an array of raw bytes, using 2 keys.
-	 * @pre  `data_size` > 0, `xkey` length <= `data_size` (use fit_hex_key before, otherwhise overflow bytes are ignored)
-	 * @post `data` is decoded
-	 */
-
-	/*********** CONVERT: USE GLOBAL KEYS *************/
-
+void* mbc_decode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
 	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit_pos, r_bit_pos;
@@ -176,4 +171,10 @@ void decoder(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_s
 	for (i = 0; i < data_size; i++) {
 		data[i] ^= xkey[i % xkey_size];
 	}
+}
+
+void mbc_free() {
+	
+	/* TODO */
+
 }
