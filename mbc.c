@@ -39,6 +39,8 @@ static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
  */
 static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr);
 
+
+// FIXME: use global variables
 static bool make_oct_key() {
 	register size_t i;
 	size_t key_size;
@@ -69,13 +71,11 @@ static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 		for (i = 0; i < hex_size; i++) sprintf(hex, "%2F", raw[i]);
 	else
 		for (i = 0; i < hex_size; i++) snprintf(hex, "%2f", raw[i]);
-	
+
 	hex[hex_size] = '\0';
 
 	return hex;
 }
-
-/* ANYTHING AFTER THIS STILL NEEDS TO BE CHECKED */
 
 static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 	uint8_t* raw;
@@ -86,6 +86,7 @@ static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_p) {
 	*raw_size_p = hex_size/2;
 	raw	        = calloc(1, *raw_size_p);
 
+	// TODO: use sscanf()
 	for (i = 0, shift = 1; i < hex_size; i++, shift^=1) {
 		if (hex[i] >= '0' && hex[i] <= '9')
 			raw[i/2] += (hex[i] - '0')       << (shift ? 4 : 0);
@@ -111,20 +112,30 @@ enum mbc_options {
 };
 
 bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
-	
+
 	/* TODO */
 
 	return true;
 }
 
 bool mbc_set_options(enum mbc_options options) {
-	
+
 	/* TODO */
-	
+
 	return true;
 }
 
-void* mbc_encode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
+// FIXME
+void* mbc_encode(void* data, size_t data_size, size_t* out_data_size) {
+	// old params: uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size
+
+	/* steps:
+	 * 1. eventually decode hex input
+	 * 2. loop over user_key or data accordingly and do xor part
+	 * 3. do misc part
+	 * 4. eventually encode hex output
+	 */
+
 	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit_pos, r_bit_pos;
@@ -148,8 +159,17 @@ void* mbc_encode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t da
 	}
 }
 
+// FIXME
+void* mbc_decode(void* data, size_t data_size, size_t* out_data_size) {
+	// old params: uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size
 
-void* mbc_decode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size) {
+	/* steps:
+	 * 1. eventually decode hex input
+	 * 2. do misc part in reverse
+	 * 3. loop over user_key or data accordingly and do xor part
+	 * 4. eventually encode hex output
+	 */
+
 	size_t xkey_size;
 	register size_t i, j;
 	uint8_t l_bit_pos, r_bit_pos;
@@ -174,7 +194,7 @@ void* mbc_decode(uint8_t* data, const char* xkey, const uint8_t* okey, size_t da
 }
 
 void mbc_free() {
-	
+
 	/* TODO */
 
 }
