@@ -115,7 +115,6 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	uint8_t *xkey, *okey, *ddata;
 	size_t xkey_size, okey_size;
 	register size_t i, j;
-	uint8_t l_bit_pos, r_bit_pos;
 
 	xkey      = user_key;
 	okey      = oct_key;
