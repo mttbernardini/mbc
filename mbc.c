@@ -18,13 +18,15 @@ static const size_t oct_key_size = 8;
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
  * @ret Generated octal key.
  */
-static uint8_t* make_oct_key(const uint8_t* key, size_t key_size);
-
-
 static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
-	uint8_t l_bit, r_bit, okey[] = {0, 1, 2, 3, 4, 5, 6, 7};
+	uint8_t l_bit, r_bit, *okey;
 	size_t swap_temp;
 	register size_t i;
+
+	okey = malloc(oct_key_size);
+	for (i = 0; i < oct_key_size; i++) {
+		okey[i] = (uint8_t) i;
+	}
 
 	for (i = 0; i < key_size; i++) {
 		l_bit = (key[i] >> 4) & 0x07;
