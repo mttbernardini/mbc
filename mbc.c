@@ -122,6 +122,12 @@ bool mbc_set_options(enum mbc_options_enum options) {
 	return true;
 }
 
+void mbc_free() {
+
+	/* TODO */
+
+}
+
 void* mbc_encode(void* data, size_t data_size, size_t* out_data_size) {
 	// old params: uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size
 
@@ -190,10 +196,4 @@ void* mbc_decode(void* data, size_t data_size, size_t* out_data_size) {
 	}*/
 
 	return NULL;
-}
-
-void mbc_free() {
-
-	/* TODO */
-
 }

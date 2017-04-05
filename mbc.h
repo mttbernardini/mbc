@@ -27,6 +27,11 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size);
 bool mbc_set_options(enum mbc_options_enum options);
 
 /**
+ * Frees any dynamically allocated variables (basically the global keys).
+ */
+void mbc_free();
+
+/**
  * Encodes data.
  * @ret  Encoded data.
  * @pre  `data` is casted to `char*` if option `MBC_OPT_ENCODE_HEX_IN` is set, otherwise `uint8_t*`.
@@ -45,10 +50,5 @@ void* mbc_encode(void* data, size_t data_size, size_t* out_data_size);
  *       and thus should be `NULL` in any other case.
  */
 void* mbc_decode(void* data, size_t data_size, size_t* out_data_size);
-
-/**
- * Frees any dynamically allocated variables (basically the global keys).
- */
-void mbc_free();
 
 #endif
