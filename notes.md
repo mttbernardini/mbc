@@ -12,28 +12,35 @@ Something like:
 
     mbc_set_options(...);
     mbc_set_user_key(...);
-    mbc_encode(...); / mbc_decode(...);
-    mbc_encode(...); / mbc_decode(...);
+    data = mbc_raw_to_hex(...); / mbc_hex_to_raw(...);
+	mbc_encode(data, ...); / mbc_decode(data, ...);
+    mbc_encode(data, ...); / mbc_decode(data, ...);
     ...
-    mbc_free(...);
+    mbc_free();
 
 ### `make_oct_key` rationale:
 
- 1. First part:
+The `okey` starts as `{0,1,2,3,4,5,6,7}`, then for every `i = 0` to `key_len-1`:
+
+ 1. Extract positions of bits to swap:
  	
-	    user_key[i]       : -xxxyyy- &
-	    bit mask L (0x70) : 01110000 =
-	    oct_key[i]        = 0xxx0000
+	    key[i]       : -xxxyyy-
+		key[i] >> 4  : 0000-xxx &
+		mask (0x07)  : 00000111 =
+		l_bit        = 00000xxx
+
+		key[i]       : -xxxyyy-
+		key[i] >> 1  : 0-xxxyyy &
+		mask (0x07)  : 00000111 =
+		r_bit        = 00000yyy
 	
- 2. Second part:
+ 2. Mirror obtained values if least significant bit of key[i] is 1:
 
-        user_key[i]       : -xxxyyy- >> 1 =
-                            0-xxxyyy &
-        bit mask R (0x07) : 00001110 =
-        oct_key[i]       += 00000yyy =
-        oct_key[i]        : 0xxx0yyy
+		if ((key[i] & 0x01) && l_bit != (r_bit ^ 0x07)) {
+			l_bit ^= 0x07;
+			r_bit ^= 0x07;
+		}
 
- 3. Mirror values if last bit of user key is set (xxx and yyy become 111-xxx and 111-yyy):
+ 3. Swap `okey[l_bit] with `okey[r_bit]`.
 
-        IF (user_key[i] & 0x01):
-        oct_key[i] = ~oct_key[i]
+ 4. At the end of the cycle, `okey` contains a swap mask to be applied to the bits of every byte of data.
