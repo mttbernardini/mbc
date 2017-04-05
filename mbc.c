@@ -82,7 +82,10 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	xkey_size = user_key_size;
 	okey_size = oct_key_size;
 
-	edata = malloc(data_size); // FIXME: handle failure
+	edata = malloc(data_size);
+	if (edata == NULL)
+		return NULL;
+
 	memcpy(edata, data, data_size);
 
 	// XOR PART
@@ -111,7 +114,8 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	uint8_t *xkey, *okey, *ddata;
 	size_t xkey_size, okey_size;
-	register size_t i, j;
+	register size_t i;
+	register int j;
 	uint8_t l_bit_pos, r_bit_pos;
 
 	xkey      = user_key;
@@ -119,12 +123,15 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	xkey_size = user_key_size;
 	okey_size = oct_key_size;
 
-	ddata = malloc(data_size); // FIXME: handle failure
+	ddata = malloc(data_size);
+	if (ddata == NULL)
+		return NULL;
+
 	memcpy(ddata, data, data_size);
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
-		for (j = okey_size-1; j < okey_size; j--) {
+		for (j = okey_size-1; j >= 0; j--) {
 			l_bit_pos = (okey[j] & 0x70) >> 4;
 			r_bit_pos = (okey[j] & 0x07);
 
@@ -137,10 +144,12 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	for (i = 0; i < data_size; i++) {
 		ddata[i] ^= xkey[i % xkey_size];
 	}
-	if (xkey_size > data_size)
+
+	if (xkey_size > data_size) {
 		for (; i < xkey_size; i++) {
 			ddata[i % data_size] ^= xkey[i];
 		}
+	}
 
 	return ddata;
 }
