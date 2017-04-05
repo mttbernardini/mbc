@@ -77,7 +77,7 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	uint8_t *xkey, *okey, *edata;
 	size_t xkey_size, okey_size;
 	register size_t i, j;
-	uint8_t l_bit_pos, r_bit_pos;
+	uint8_t temp_byte;
 
 	xkey      = user_key;
 	okey      = oct_key;
@@ -88,26 +88,20 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	if (edata == NULL)
 		return NULL;
 
-	memcpy(edata, data, data_size);
-
 	// XOR PART
-	for (i = 0; i < data_size; i++) {
-		edata[i] ^= xkey[i % xkey_size];
-	}
+	for (i = 0; i < data_size; i++)
+		edata[i] = data[i] ^ xkey[i % xkey_size];
 	if (xkey_size > data_size)
-		for (; i < xkey_size; i++) {
+		for (; i < xkey_size; i++)
 			edata[i % data_size] ^= xkey[i];
-		}
 
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
-		for (j = 0; j < okey_size; j++) {
-			l_bit_pos = (okey[j] & 0x70) >> 4;
-			r_bit_pos = (okey[j] & 0x07);
-
-			if (((edata[i] >> l_bit_pos) & 0x1) != ((edata[i] >> r_bit_pos) & 0x1))
-				edata[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
-		}
+		temp_byte = 0x00;
+		for (j = 0; j < okey_size; j++)
+			if (j != okey[j])
+				temp_byte |= ((edata[i] >> j) & 0x01) << okey[j];
+		edata[i] = temp_byte;
 	}
 
 	return edata;
@@ -116,8 +110,7 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	uint8_t *xkey, *okey, *ddata;
 	size_t xkey_size, okey_size;
-	register size_t i;
-	register int j;
+	register size_t i, j;
 	uint8_t l_bit_pos, r_bit_pos;
 
 	xkey      = user_key;
@@ -129,29 +122,20 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	if (ddata == NULL)
 		return NULL;
 
-	memcpy(ddata, data, data_size);
-
 	// MISC PART
 	for (i = 0; i < data_size; i++) {
-		for (j = okey_size-1; j >= 0; j--) {
-			l_bit_pos = (okey[j] & 0x70) >> 4;
-			r_bit_pos = (okey[j] & 0x07);
-
-			if (((ddata[i] >> l_bit_pos) & 0x1) != ((ddata[i] >> r_bit_pos) & 0x1))
-				ddata[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
-		}
+		ddata[i] = 0x00;
+		for (j = 0; j < okey_size; j++)
+			if (j != okey[j])
+				ddata[i] |= ((ddata[i] >> okey[j]) & 0x01) << j;
 	}
 
 	// XOR PART
-	for (i = 0; i < data_size; i++) {
+	for (i = 0; i < data_size; i++)
 		ddata[i] ^= xkey[i % xkey_size];
-	}
-
-	if (xkey_size > data_size) {
-		for (; i < xkey_size; i++) {
+	if (xkey_size > data_size)
+		for (; i < xkey_size; i++)
 			ddata[i % data_size] ^= xkey[i];
-		}
-	}
 
 	return ddata;
 }
