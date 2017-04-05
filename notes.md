@@ -41,6 +41,6 @@ The `okey` starts as `{0,1,2,3,4,5,6,7}`, then for every `i = 0` to `key_len-1`:
 			r_bit ^= 0x07;
 		}
 
- 3. Swap `okey[l_bit] with `okey[r_bit]`.
+ 3. Swap `okey[l_bit]` with `okey[r_bit]`.
 
- 4. At the end of the cycle, `okey` contains a swap mask to be applied to the bits of every byte of data.
+ 4. At the end of the cycle, `okey` contains a swap map to be applied to the bits of every byte of data.
