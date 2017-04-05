@@ -18,22 +18,22 @@ void mbc_free();
 
 /**
  * Encodes data.
- * @ret  Encoded data as array.
- * @pre  `data_size` > 0, `data` is an array of bytes.
+ * @ret  Encoded data as array, `NULL` if the array cannot be `malloc`ated.
+ * @pre  A key has been corectly set; `data` is an array of bytes; `data_size > 0`.
  */
 uint8_t* mbc_encode(const uint8_t* data, size_t data_size);
 
 /**
  * Decodes data.
- * @ret  Decoded data as array.
- * @pre  `data_size` > 0, `data` is an array of bytes.
+ * @ret  Decoded data as array, `NULL` if the array cannot be `malloc`ated.
+ * @pre  A key has been corectly set; `data` is an array of bytes; `data_size > 0`.
  */
 uint8_t* mbc_decode(const uint8_t* data, size_t data_size);
 
 /**
  * Converts raw data into an hexadecimal string.
  * @ret  NULL-terminated hexadecimal string.
- * @pre  `raw` is an array of bytes, `raw_size` is the size of `raw` and should be > 0.
+ * @pre  `raw` is an array of bytes; `raw_size > 0`.
  * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
  */
 char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);

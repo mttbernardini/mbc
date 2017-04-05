@@ -67,8 +67,10 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 
 void mbc_free() {
 	free(user_key);
+	free(oct_key);
+	user_key = NULL;
+	oct_key = NULL;
 	user_key_size = 0;
-	oct_key = NULL;  //CHECK
 }
 
 uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
@@ -160,7 +162,9 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	register size_t i;
 
 	hex_size = raw_size * 2 + 1;
-	hex = malloc(hex_size);  //FIXME: handle malloc error
+	hex = malloc(hex_size);
+	if (hex_size == NULL)
+		return NULL;
 
 	if (uppercase)
 		for (i = 0; i < hex_size; i++)
@@ -181,8 +185,10 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 
 	hex_size      = strlen(hex);
 	*raw_size_ptr = hex_size/2;
-	raw           = malloc(*raw_size_ptr);  //FIXME: handle malloc error
 	raw_size      = *raw_size_ptr;
+	raw           = malloc(raw_size);
+	if (raw == NULL)
+		return NULL;
 
 	for (i = 0; i < raw_size; i++) {
 		sscanf(hex + i*2, "%2x" SCNu8, raw + i);
