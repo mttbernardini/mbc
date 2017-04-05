@@ -16,7 +16,7 @@ static const size_t oct_key_size = 8;
 
 /**
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
- * @ret Generated octal key.
+ * @ret Generated octal key, `NULL` if the key cannot be `malloc`ated.
  */
 static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
 	uint8_t l_bit, r_bit, *okey;
@@ -24,6 +24,9 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
 	register size_t i;
 
 	okey = malloc(oct_key_size);
+	if (okey == NULL)
+		return NULL;
+
 	for (i = 0; i < oct_key_size; i++) {
 		okey[i] = (uint8_t) i;
 	}
@@ -54,13 +57,14 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
 
 bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 	user_key = malloc(key_size);
-
 	if (user_key == NULL)
 		return false;
 
 	user_key      = memcpy(user_key, key, key_size);
 	user_key_size = key_size;
 	oct_key       = make_oct_key(user_key, user_key_size);
+	if (oct_key == NULL)
+		return false;
 
 	return true;
 }
