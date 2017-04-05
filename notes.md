@@ -23,7 +23,7 @@ Something like:
 The `okey` starts as `{0,1,2,3,4,5,6,7}`, then for every `i = 0` to `key_len-1`:
 
  1. Extract positions of bits to swap:
- 	
+
 	    key[i]       : -xxxyyy-
 		key[i] >> 4  : 0000-xxx &
 		mask (0x07)  : 00000111 =
@@ -33,7 +33,7 @@ The `okey` starts as `{0,1,2,3,4,5,6,7}`, then for every `i = 0` to `key_len-1`:
 		key[i] >> 1  : 0-xxxyyy &
 		mask (0x07)  : 00000111 =
 		r_bit        = 00000yyy
-	
+
  2. Mirror obtained values if least significant bit of key[i] is 1:
 
 		if ((key[i] & 0x01) && l_bit != (r_bit ^ 0x07)) {

@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "mbc.h"
 
 /***********************
@@ -12,29 +13,12 @@ static uint8_t* user_key;
 static size_t user_key_size;
 static uint8_t* oct_key;
 static const size_t oct_key_size = 8;
-static enum mbc_options_enum user_options = MBC_OPT_NONE;
 
 /**
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
  * @ret Generated octal key.
  */
 static uint8_t* make_oct_key(const uint8_t* key, size_t key_size);
-
-/**
- * Converts raw data into an hexadecimal string.
- * @ret  NULL-terminated hexadecimal string.
- * @pre  `raw` contains raw bytes, `raw_size` is the size of `raw` and should be > 0.
- * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
- */
-static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
-
-/**
- * Converts hexadecimal string into raw data.
- * @ret  Raw data array.
- * @pre  `hex` is a NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters, and its length should be even and > 0.
- * @post `*raw_size_ptr` contains the size of the raw data returned.
- */
-static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr);
 
 
 static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
@@ -61,13 +45,111 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
 	return okey;
 }
 
-static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
+
+/**********************
+ **      PUBLIC      **
+ **********************/
+
+bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
+	user_key = malloc(key_size);
+
+	if (user_key == NULL)
+		return false;
+
+	user_key      = memcpy(user_key, key, key_size);
+	user_key_size = key_size;
+	oct_key       = make_oct_key(user_key, user_key_size);
+
+	return true;
+}
+
+void mbc_free() {
+	free(user_key);
+	user_key_size = 0;
+	oct_key = NULL;  //CHECK
+}
+
+uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
+	uint8_t *xkey, *okey, *edata;
+	size_t xkey_size, okey_size;
+	register size_t i, j;
+	uint8_t l_bit_pos, r_bit_pos;
+
+	xkey      = user_key;
+	okey      = oct_key;
+	xkey_size = user_key_size;
+	okey_size = oct_key_size;
+
+	edata = malloc(data_size); // FIXME: handle failure
+	memcpy(edata, data, data_size);
+
+	// XOR PART
+	for (i = 0; i < data_size; i++) {
+		edata[i] ^= xkey[i % xkey_size];
+	}
+	if (xkey_size > data_size)
+		for (; i < xkey_size; i++) {
+			edata[i % data_size] ^= xkey[i];
+		}
+
+	// MISC PART
+	for (i = 0; i < data_size; i++) {
+		for (j = 0; j < okey_size; j++) {
+			l_bit_pos = (okey[j] & 0x70) >> 4;
+			r_bit_pos = (okey[j] & 0x07);
+
+			if (((edata[i] >> l_bit_pos) & 0x1) != ((edata[i] >> r_bit_pos) & 0x1))
+				edata[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
+		}
+	}
+
+	return edata;
+}
+
+uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
+	uint8_t *xkey, *okey, *ddata;
+	size_t xkey_size, okey_size;
+	register size_t i, j;
+	uint8_t l_bit_pos, r_bit_pos;
+
+	xkey      = user_key;
+	okey      = oct_key;
+	xkey_size = user_key_size;
+	okey_size = oct_key_size;
+
+	ddata = malloc(data_size); // FIXME: handle failure
+	memcpy(ddata, data, data_size);
+
+	// MISC PART
+	for (i = 0; i < data_size; i++) {
+		for (j = okey_size-1; j < okey_size; j--) {
+			l_bit_pos = (okey[j] & 0x70) >> 4;
+			r_bit_pos = (okey[j] & 0x07);
+
+			if (((ddata[i] >> l_bit_pos) & 0x1) != ((ddata[i] >> r_bit_pos) & 0x1))
+				ddata[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
+		}
+	}
+
+	// XOR PART
+	for (i = 0; i < data_size; i++) {
+		ddata[i] ^= xkey[i % xkey_size];
+	}
+	if (xkey_size > data_size)
+		for (; i < xkey_size; i++) {
+			ddata[i % data_size] ^= xkey[i];
+		}
+
+	return ddata;
+}
+
+char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	char* hex;
 	size_t hex_size;
 	register size_t i;
 
 	hex_size = raw_size * 2 + 1;
-	hex = malloc(hex_size);
+	hex = malloc(hex_size);  //FIXME: handle malloc error
 
 	if (uppercase)
 		for (i = 0; i < hex_size; i++)
@@ -81,119 +163,19 @@ static char* raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	return hex;
 }
 
-static uint8_t* hex_to_raw(const char* hex, size_t* raw_size_ptr) {
+uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	uint8_t* raw;
-	size_t hex_size;
+	size_t hex_size, raw_size;
 	register size_t i;
 
-	hex_size = strlen(hex);
+	hex_size      = strlen(hex);
 	*raw_size_ptr = hex_size/2;
-	raw = malloc(*raw_size_ptr);
+	raw           = malloc(*raw_size_ptr);  //FIXME: handle malloc error
+	raw_size      = *raw_size_ptr;
 
 	for (i = 0; i < raw_size; i++) {
 		sscanf(hex + i*2, "%2x" SCNu8, raw + i);
 	}
 
-	return hex;
-}
-
-
-/**********************
- **      PUBLIC      **
- **********************/
-
-bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
-
-	user_key_size = key_size;
-	user_key = malloc(user_key_size);
-
-	if (user_key == NULL) return false;
-
-	user_key = memcpy(user_key, key, user_key_size);
-	oct_key = make_oct_key(user_key, user_key_size);
-
-	return true;
-}
-
-bool mbc_set_options(enum mbc_options_enum options) {
-
-	/* TODO */
-
-	return true;
-}
-
-void mbc_free() {
-
-	/* TODO */
-
-}
-
-void* mbc_encode(void* data, size_t data_size, size_t* out_data_size) {
-	// old params: uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size
-
-	/* FIXME, steps:
-	 * 1. eventually decode hex input
-	 * 2. loop over user_key or data accordingly and do xor part
-	 * 3. do misc part
-	 * 4. eventually encode hex output
-	 *
-
-	size_t xkey_size;
-	register size_t i, j;
-	uint8_t l_bit_pos, r_bit_pos;
-
-	xkey_size = strlen(xkey);
-
-	// XOR PART
-	for (i = 0; i < data_size; i++) {
-		data[i] ^= xkey[i % xkey_size];
-	}
-
-	// MISC PART
-	for (i = 0; i < data_size; i++) {
-		for (j = 0; j < okey_size; j++) {
-			l_bit_pos = (okey[j] & 0x70) >> 4;
-			r_bit_pos = (okey[j] & 0x07);
-
-			if (((data[i] >> l_bit_pos) & 0x1) != ((data[i] >> r_bit_pos) & 0x1))
-				data[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
-		}
-	}*/
-
-	return NULL;
-}
-
-void* mbc_decode(void* data, size_t data_size, size_t* out_data_size) {
-	// old params: uint8_t* data, const char* xkey, const uint8_t* okey, size_t data_size, size_t okey_size
-
-	/* FIXME, steps:
-	 * 1. eventually decode hex input
-	 * 2. do misc part in reverse
-	 * 3. loop over user_key or data accordingly and do xor part
-	 * 4. eventually encode hex output
-	 *
-
-	size_t xkey_size;
-	register size_t i, j;
-	uint8_t l_bit_pos, r_bit_pos;
-
-	xkey_size = strlen(xkey);
-
-	// MISC PART
-	for (i = 0; i < data_size; i++) {
-		for (j = okey_size-1; j < okey_size; j--) {
-			l_bit_pos = (okey[j] & 0x70) >> 4;
-			r_bit_pos = (okey[j] & 0x07);
-
-			if (((data[i] >> l_bit_pos) & 0x1) != ((data[i] >> r_bit_pos) & 0x1))
-				data[i] ^= (0x1 << l_bit_pos) ^ (0x1 << r_bit_pos);
-		}
-	}
-
-	// XOR PART
-	for (i = 0; i < data_size; i++) {
-		data[i] ^= xkey[i % xkey_size];
-	}*/
-
-	return NULL;
+	return raw;
 }
