@@ -8,6 +8,7 @@
 /**
  * Sets the value of global `user_key` and calculates global `oct_key`.
  * @ret `true` if success, `false` otherwise.
+ * @pre `key` is an array of bytes; `key_size` > 0
  */
 bool mbc_set_user_key(const uint8_t* key, size_t key_size);
 
@@ -32,7 +33,7 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size);
 
 /**
  * Converts raw data into an hexadecimal string.
- * @ret  NULL-terminated hexadecimal string.
+ * @ret  NULL-terminated hexadecimal string, `NULL` if the string cannot be `malloc`ated.
  * @pre  `raw` is an array of bytes; `raw_size > 0`.
  * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
  */
@@ -40,7 +41,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
 
 /**
  * Converts hexadecimal string into raw data.
- * @ret  Raw data array.
+ * @ret  Raw data array, `NULL` if the array cannot be `malloc`ated.
  * @pre  `hex` is a NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters, and its length should be > 0.
  * @post `*raw_size_ptr` contains the size of the raw data returned.
  */
