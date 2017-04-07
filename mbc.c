@@ -1,35 +1,34 @@
-#include <stdbool.h>
+#include "mbc.h"
 #include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "mbc.h"
 
 /***********************
  **      PRIVATE      **
  ***********************/
 
+typedef uint8_t mbc_oct_key_el_t[2];
+typedef mbc_oct_key_el_t* mbc_oct_key_t;
+
 static uint8_t* user_key;
 static size_t user_key_size;
-static uint8_t* oct_key;
-static const size_t oct_key_size = 8;
+static mbc_oct_key_t oct_key;
+static size_t oct_key_size;
 
 /**
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
- * @ret Generated octal key, `NULL` if the key cannot be `malloc`ated.
+ * @ret  Generated octal key, `NULL` if the key cannot be `malloc`ated.
+ * @post `*okey_size_ptr` now contains the size of the `oct_key` generated.
  */
-static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
-	uint8_t l_bit, r_bit, *okey;
-	size_t swap_temp;
-	register size_t i;
-
-	okey = malloc(oct_key_size);
-	if (okey == NULL)
-		return NULL;
-
-	for (i = 0; i < oct_key_size; i++) {
-		okey[i] = (uint8_t) i;
-	}
+static mbc_oct_key_t make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_size_ptr) {
+	uint8_t l_bit, r_bit, swap_temp, current, next;
+	uint8_t swap_mask[8] = {0,1,2,3,4,5,6,7};
+	bool to_check[8] = {1,1,1,1,1,1,1,1};
+	register size_t i, j;
+	size_t okey_size;
+	mbc_oct_key_el_t to_find;
+	mbc_oct_key_t okey;
 
 	for (i = 0; i < key_size; i++) {
 		l_bit = (key[i] >> 4) & 0x07;
@@ -41,12 +40,34 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size) {
 				r_bit ^= 0x07;
 			}
 
-			swap_temp = okey[l_bit];
-			okey[l_bit] = okey[r_bit];
-			okey[r_bit] = swap_temp;
+			swap_temp = swap_mask[l_bit];
+			swap_mask[l_bit] = swap_mask[r_bit];
+			swap_mask[r_bit] = swap_temp;
 		}
 	}
 
+	okey = malloc(sizeof(mbc_oct_key_el_t) * 8);
+	okey_size = 0;
+	for (i = 0; i < 8; i++) {
+		if (i == swap_mask[i]) {
+			to_check[i] = false;
+		} else if (to_check[i]) {
+			current = i;
+			for (next = swap_mask[i]; next != current; next = swap_mask[next]) {
+				to_check[next] = false;
+				okey[okey_size][0] = current;
+				okey[okey_size][1] = next;
+				okey_size++;
+			}
+		}
+	}
+
+	printf("okey generated:\n");
+	for (i = 0; i < okey_size; i++) {
+		printf("(%u, %u)\n", okey[i][0], okey[i][1]);
+	}
+
+	*okey_size_ptr = okey_size;
 	return okey;
 }
 
@@ -60,9 +81,9 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 	if (user_key == NULL)
 		return false;
 
-	user_key      = memcpy(user_key, key, key_size);
+	memcpy(user_key, key, key_size);
 	user_key_size = key_size;
-	oct_key       = make_oct_key(user_key, user_key_size);
+	oct_key = make_oct_key(user_key, user_key_size, &oct_key_size);
 	if (oct_key == NULL)
 		return false;
 
@@ -71,12 +92,13 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 
 void mbc_free() {
 	free(user_key);
-	free(oct_key);
 	user_key = NULL;
-	oct_key = NULL;
 	user_key_size = 0;
+	free(oct_key);
+	oct_key = NULL;
+	oct_key_size = 0;
 }
-
+/*
 uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	uint8_t *xkey, *okey, *edata;
 	size_t xkey_size, okey_size;
@@ -142,7 +164,7 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 
 	return ddata;
 }
-
+*/
 char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	char* hex;
 	size_t hex_size;
@@ -150,7 +172,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 
 	hex_size = raw_size * 2 + 1;
 	hex = malloc(hex_size);
-	if (hex_size == NULL)
+	if (hex == NULL)
 		return NULL;
 
 	if (uppercase)
