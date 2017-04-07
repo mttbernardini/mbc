@@ -62,11 +62,6 @@ static mbc_oct_key_t make_oct_key(const uint8_t* key, size_t key_size, size_t* o
 		}
 	}
 
-	printf("okey generated:\n");
-	for (i = 0; i < okey_size; i++) {
-		printf("(%u, %u)\n", okey[i][0], okey[i][1]);
-	}
-
 	*okey_size_ptr = okey_size;
 	return okey;
 }
