@@ -132,7 +132,7 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 
 	// SWAP
 	for (i = 0; i < data_size; i++)
-		for (j = oct_key_size-1; j >= 0; j++)
+		for (j = oct_key_size-1; j >= 0; j--)
 			if (ddata[i] >> oct_key[j][0] != ddata[i] >> oct_key[j][1])
 				ddata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 
