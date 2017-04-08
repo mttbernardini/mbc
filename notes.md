@@ -41,7 +41,7 @@ The `swap_mask` starts as `{0,1,2,3,4,5,6,7}`, then for every `i` from `0` to `k
 			r_bit ^= 0x07;
 		}
 
- 3. Swap `swap_mask[l_bit] with `swap_mask[r_bit]`.
+ 3. Swap `swap_mask[l_bit]` with `swap_mask[r_bit]`.
 
  4. At the end of the cycle, `swap_mask` contains the swap mask to be applied to the bits of every byte of data.
  5. The following cycle scans `swap_mask` to extact the shortest array of moves (which will be the real `oct_key`) to perform to obtain the same result.
