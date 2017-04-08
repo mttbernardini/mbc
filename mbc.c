@@ -105,9 +105,8 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	// XOR
 	for (i = 0; i < data_size; i++)
 		edata[i] = data[i] ^ user_key[i % user_key_size];
-	if (user_key_size > data_size)
-		for (; i < user_key_size; i++)
-			edata[i % data_size] ^= user_key[i];
+	for (; i < user_key_size; i++)
+		edata[i % data_size] ^= user_key[i];
 
 	// SWAP
 	for (i = 0; i < data_size; i++)
@@ -136,9 +135,8 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	// XOR
 	for (i = 0; i < data_size; i++)
 		ddata[i] ^= user_key[i % user_key_size];
-	if (user_key_size > data_size)
-		for (; i < user_key_size; i++)
-			ddata[i % data_size] ^= user_key[i];
+	for (; i < user_key_size; i++)
+		ddata[i % data_size] ^= user_key[i];
 
 	return ddata;
 }
@@ -167,6 +165,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 
 uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	uint8_t* raw;
+	int temp;
 	size_t hex_size, raw_size;
 	register size_t i;
 
@@ -177,9 +176,9 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	if (raw == NULL)
 		return NULL;
 
-	// FIXME: This is wrong, can't use "%2x"SCNu8 to scan for hex uint8_t...
 	for (i = 0; i < raw_size; i++) {
-		sscanf(hex + i*2, "%2x" SCNu8, raw + i);
+		sscanf(hex + i*2, "%2x", &temp);
+		raw[i] = (uint8_t) temp;
 	}
 
 	return raw;
