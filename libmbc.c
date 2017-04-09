@@ -1,4 +1,4 @@
-#include "mbc.h"
+#include "libmbc.h"
 #include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>

@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <stdlib.h>
-#include "mbc.c"
+#include "libmbc.c"
 // ^^^^^^^^^^^^^ Never include the .c! This include is for quick testing purposes only.
 
 int main(int argc, char* argv[]) {
