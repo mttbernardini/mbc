@@ -156,13 +156,13 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 		return NULL;
 
 	if (uppercase)
-		for (i = 0; i < hex_size; i++)
-			sprintf(hex, "%2X", raw[i]);
+		for (i = 0; i < raw_size; i++)
+			sprintf(hex + i*2, "%02X", raw[i]);
 	else
-		for (i = 0; i < hex_size; i++)
-			sprintf(hex, "%2x", raw[i]);
+		for (i = 0; i < raw_size; i++)
+			sprintf(hex + i*2, "%02x", raw[i]);
 
-	hex[hex_size] = '\0';
+	hex[hex_size-1] = '\0';
 
 	return hex;
 }

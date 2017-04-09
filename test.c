@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 	printf("\n");
 
 	uint8_t test_raw[] = {0x10, 0xff, 0xaa, 0x01, 0x11};
-	char test_hex[] = "00fFAA0111";
+	char test_hex[] = "10fFAA0111";
 	size_t test_raw_size, test_hex_size, raw_result_size;
 	uint8_t* raw_result;
 	char* hex_result;
