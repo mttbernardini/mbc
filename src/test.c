@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
 	printf("\nTesting conversion:\n   Raw: ");
 	for (i = 0; i < test_raw_size; i++)
-		printf("%2x", test_raw[i]);
+		printf("%02x", test_raw[i]);
 	printf("\n");
 
 	printf("To hex: ");
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
 	printf("To raw: ");
 	for (i = 0; i < raw_result_size; i++)
-		printf("%2x", raw_result[i]);
+		printf("%02x", raw_result[i]);
 	printf("\n");
 
 	mbc_free();
