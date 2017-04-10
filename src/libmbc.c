@@ -102,11 +102,9 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	if (edata == NULL)
 		return NULL;
 
-	memcpy(edata, data, data_size);
-
 	// XOR
 	for (i = 0; i < data_size; i++)
-		edata[i] ^= user_key[i % user_key_size];
+		edata[i] = data[i] ^ user_key[i % user_key_size];
 	for (; i < user_key_size; i++)
 		edata[i % data_size] ^= user_key[i];
 
@@ -128,19 +126,18 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	if (ddata == NULL)
 		return NULL;
 
-	memcpy(ddata, data, data_size);
+	// XOR
+	for (i = 0; i < data_size; i++)
+		ddata[i] = data[i] ^ user_key[i % user_key_size];
+	for (; i < user_key_size; i++)
+		ddata[i % data_size] ^= user_key[i];
 
 	// SWAP
-	for (i = 0; i < data_size; i++)
+	for (i = 0; i < data_size; i++) {
 		for (j = oct_key_size-1; j >= 0; j--)
 			if (ddata[i] >> oct_key[j][0] != ddata[i] >> oct_key[j][1])
 				ddata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
-
-	// XOR
-	for (i = 0; i < data_size; i++)
-		ddata[i] ^= user_key[i % user_key_size];
-	for (; i < user_key_size; i++)
-		ddata[i % data_size] ^= user_key[i];
+	}
 
 	return ddata;
 }
