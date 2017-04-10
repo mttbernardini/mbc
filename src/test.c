@@ -2,11 +2,11 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <stdlib.h>
-#include "libmbc.c"
-// ^^^^^^^^^^^^^ Never include the .c! This include is for quick testing purposes only.
+#include <string.h>
+#include "libmbc.h"
 
 int main(int argc, char* argv[]) {
-	uint8_t *encoded, *decoded, *user_data;
+	uint8_t *encoded, *decoded, *user_data, *user_key;
 	size_t user_data_len, user_key_len;
 	register size_t i;
 
