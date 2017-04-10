@@ -1,5 +1,5 @@
-#ifndef MBC_H_INCLUDED
-#define MBC_H_INCLUDED
+#ifndef LIBMBC_H_INCLUDED
+#define LIBMBC_H_INCLUDED
 
 #include <stddef.h>
 #include <stdint.h>
