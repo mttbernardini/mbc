@@ -61,14 +61,14 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr);
 
 /**
  * Encodes data in place.
- * @pre  A key has been corectly set; `data` is an array of bytes; `data_size > 0`.
+ * @pre  A key has been correctly set; `data` is an array of bytes; `data_size > 0`.
  * @post `data` contains encoded bytes.
  */
 void mbc_encode_inplace(uint8_t* data, size_t data_size);
 
 /**
  * Decodes data in place.
- * @pre  A key has been corectly set; `data` is an array of bytes; `data_size > 0`.
+ * @pre  A key has been correctly set; `data` is an array of bytes; `data_size > 0`.
  * @post `data` contains decoded bytes.
  */
 void mbc_decode_inplace(uint8_t* data, size_t data_size);
