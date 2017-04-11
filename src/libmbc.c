@@ -25,9 +25,8 @@ static mbc_oct_key_t make_oct_key(const uint8_t* key, size_t key_size, size_t* o
 	uint8_t l_bit, r_bit, swap_temp, current, next;
 	uint8_t swap_mask[8] = {0,1,2,3,4,5,6,7};
 	bool to_check[8] = {1,1,1,1,1,1,1,1};
-	register size_t i, j;
+	register size_t i;
 	size_t okey_size;
-	mbc_oct_key_el_t to_find;
 	mbc_oct_key_t okey;
 
 	for (i = 0; i < key_size; i++) {
@@ -208,6 +207,7 @@ char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) 
 		return NULL;
 
 	hex_out = mbc_raw_to_hex(encoded_data, raw_size, uppercase);
+	free(encoded_data);
 
 	return hex_out;
 }
@@ -238,6 +238,7 @@ char* mbc_encode_hex2hex(const char* hex_in, bool uppercase) {
 	mbc_encode_inplace(raw_data, raw_size);
 
 	hex_out = mbc_raw_to_hex(raw_data, raw_size, uppercase);
+	free(raw_data);
 
 	return hex_out;
 }
@@ -254,6 +255,7 @@ char* mbc_decode_hex2hex(const char* hex_in, bool uppercase) {
 	mbc_decode_inplace(raw_data, raw_size);
 
 	hex_out = mbc_raw_to_hex(raw_data, raw_size, uppercase);
+	free(raw_data);
 
 	return hex_out;
 }
