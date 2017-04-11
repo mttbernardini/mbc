@@ -94,52 +94,39 @@ void mbc_free() {
 	oct_key_size = 0;
 }
 
-uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
-	uint8_t* edata;
+void mbc_encode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i, j;
-
-	edata = malloc(data_size);
-	if (edata == NULL)
-		return NULL;
 
 	// XOR
 	for (i = 0; i < data_size; i++)
-		edata[i] = data[i] ^ user_key[i % user_key_size];
+		data[i] ^= user_key[i % user_key_size];
 	for (; i < user_key_size; i++)
-		edata[i % data_size] ^= user_key[i];
+		data[i % data_size] ^= user_key[i];
 
 	// SWAP
-	for (i = 0; i < data_size; i++)
+	for (i = 0; i < data_size; i++) {
 		for (j = 0; j < oct_key_size; j++)
-			if (edata[i] >> oct_key[j][0] != edata[i] >> oct_key[j][1])
-				edata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
-
-	return edata;
+			if (data[i] >> oct_key[j][0] != data[i] >> oct_key[j][1])
+				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
+	}
 }
 
-uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
-	uint8_t* ddata;
+void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i;
 	register int8_t j;
 
-	ddata = malloc(data_size);
-	if (ddata == NULL)
-		return NULL;
-
 	// XOR
 	for (i = 0; i < data_size; i++)
-		ddata[i] = data[i] ^ user_key[i % user_key_size];
+		data[i] ^= user_key[i % user_key_size];
 	for (; i < user_key_size; i++)
-		ddata[i % data_size] ^= user_key[i];
+		data[i % data_size] ^= user_key[i];
 
 	// SWAP
 	for (i = 0; i < data_size; i++) {
 		for (j = oct_key_size-1; j >= 0; j--)
-			if (ddata[i] >> oct_key[j][0] != ddata[i] >> oct_key[j][1])
-				ddata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
+			if (data[i] >> oct_key[j][0] != data[i] >> oct_key[j][1])
+				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
-
-	return ddata;
 }
 
 char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
@@ -186,12 +173,30 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	return raw;
 }
 
-void mbc_encode_inplace(uint8_t* data, size_t data_size) {
-	//TODO
+uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
+	uint8_t* edata;
+
+	edata = malloc(data_size);
+	if (edata == NULL)
+		return NULL;
+
+	memcpy(edata, data, data_size);
+	mbc_encode_inplace(edata, data_size);
+
+	return edata;
 }
 
-void mbc_decode_inplace(uint8_t* data, size_t data_size) {
-	//TODO
+uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
+	uint8_t* ddata;
+
+	ddata = malloc(data_size);
+	if (ddata == NULL)
+		return NULL;
+
+	memcpy(ddata, data, data_size);
+	mbc_decode_inplace(ddata, data_size);
+
+	return ddata;
 }
 
 char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) {
