@@ -57,7 +57,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
 uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr);
 
 
-// ADVANCED FUNCTIONS
+// EXTRA FUNCTIONS
 
 /**
  * Encodes data in place.
