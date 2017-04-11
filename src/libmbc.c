@@ -93,6 +93,32 @@ void mbc_free() {
 	oct_key_size = 0;
 }
 
+uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
+	uint8_t* edata;
+
+	edata = malloc(data_size);
+	if (edata == NULL)
+		return NULL;
+
+	memcpy(edata, data, data_size);
+	mbc_encode_inplace(edata, data_size);
+
+	return edata;
+}
+
+uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
+	uint8_t* ddata;
+
+	ddata = malloc(data_size);
+	if (ddata == NULL)
+		return NULL;
+
+	memcpy(ddata, data, data_size);
+	mbc_decode_inplace(ddata, data_size);
+
+	return ddata;
+}
+
 void mbc_encode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i, j;
 
@@ -127,6 +153,40 @@ void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
 }
+
+
+// EXTRA
+
+char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) {
+	uint8_t* encoded_data;
+	char* hex_out;
+
+	encoded_data = mbc_encode(raw_in, raw_size);
+	if (encoded_data == NULL)
+		return NULL;
+
+	hex_out = mbc_raw_to_hex(encoded_data, raw_size, uppercase);
+	free(encoded_data);
+
+	return hex_out;
+}
+
+uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr) {
+	uint8_t *raw_data;
+	size_t raw_size;
+
+	raw_data = mbc_hex_to_raw(hex_in, &raw_size);
+	if (raw_data == NULL)
+		return NULL;
+
+	mbc_decode_inplace(raw_data, raw_size);
+	*decoded_size_ptr = raw_size;
+
+	return raw_data;
+}
+
+
+// UTILITIES
 
 char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	char* hex;
@@ -170,92 +230,4 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	*raw_size_ptr = raw_size;
 
 	return raw;
-}
-
-uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
-	uint8_t* edata;
-
-	edata = malloc(data_size);
-	if (edata == NULL)
-		return NULL;
-
-	memcpy(edata, data, data_size);
-	mbc_encode_inplace(edata, data_size);
-
-	return edata;
-}
-
-uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
-	uint8_t* ddata;
-
-	ddata = malloc(data_size);
-	if (ddata == NULL)
-		return NULL;
-
-	memcpy(ddata, data, data_size);
-	mbc_decode_inplace(ddata, data_size);
-
-	return ddata;
-}
-
-char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) {
-	uint8_t* encoded_data;
-	char* hex_out;
-
-	encoded_data = mbc_encode(raw_in, raw_size);
-	if (encoded_data == NULL)
-		return NULL;
-
-	hex_out = mbc_raw_to_hex(encoded_data, raw_size, uppercase);
-	free(encoded_data);
-
-	return hex_out;
-}
-
-uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr) {
-	uint8_t *raw_data;
-	size_t raw_size;
-
-	raw_data = mbc_hex_to_raw(hex_in, &raw_size);
-	if (raw_data == NULL)
-		return NULL;
-
-	mbc_decode_inplace(raw_data, raw_size);
-	*decoded_size_ptr = raw_size;
-
-	return raw_data;
-}
-
-char* mbc_encode_hex2hex(const char* hex_in, bool uppercase) {
-	uint8_t* raw_data;
-	char* hex_out;
-	size_t raw_size;
-
-	raw_data = mbc_hex_to_raw(hex_in, &raw_size);
-	if (raw_data == NULL)
-		return NULL;
-
-	mbc_encode_inplace(raw_data, raw_size);
-
-	hex_out = mbc_raw_to_hex(raw_data, raw_size, uppercase);
-	free(raw_data);
-
-	return hex_out;
-}
-
-char* mbc_decode_hex2hex(const char* hex_in, bool uppercase) {
-	uint8_t* raw_data;
-	char* hex_out;
-	size_t raw_size;
-
-	raw_data = mbc_hex_to_raw(hex_in, &raw_size);
-	if (raw_data == NULL)
-		return NULL;
-
-	mbc_decode_inplace(raw_data, raw_size);
-
-	hex_out = mbc_raw_to_hex(raw_data, raw_size, uppercase);
-	free(raw_data);
-
-	return hex_out;
 }

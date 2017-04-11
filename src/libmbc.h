@@ -90,22 +90,4 @@ char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase);
  */
 uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr);
 
-/**
- * Encodes data from hexadecimal input to hexadecimal output.
- * @ret  NULL-terminated hexadecimal string, `NULL` if the string cannot be `malloc`ated.
- * @pre  `hex_in` is a non-empty NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters.
- *       If the length of the string is not even the last extra char is discarded.
- * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
- */
-char* mbc_encode_hex2hex(const char* hex_in, bool uppercase);
-
-/**
- * Decodes data from hexadecimal input to hexadecimal output.
- * @ret  NULL-terminated hexadecimal string, `NULL` if the string cannot be `malloc`ated.
- * @pre  `hex_in` is a non-empty NULL-terminated string containing only lower/uppercase hexadecimal ASCII characters.
- *       If the length of the string is not even the last extra char is discarded.
- * @post The length of the returned string is even, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
- */
-char* mbc_decode_hex2hex(const char* hex_in, bool uppercase);
-
 #endif
