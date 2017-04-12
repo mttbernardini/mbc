@@ -14,14 +14,21 @@ endif()
 add_definitions(-std=c99)
 add_definitions(-Wall)
 
+# Add library
+add_library(libmbc SHARED "src/libmbc.c")
+set_target_properties(libmbc PROPERTIES PREFIX "")
+
 # Add sources
+add_executable(mbc "src/mbc.c")
 add_executable(mbc_test "src/test.c")
-add_library(mbc SHARED "src/libmbc.c")
+add_executable(mbc_test_file "src/test_file.c")
 
 # Link em
-target_link_libraries(mbc_test mbc)
+target_link_libraries(mbc libmbc)
+target_link_libraries(mbc_test libmbc)
+target_link_libraries(mbc_test_file libmbc)
 
 # Install
-install(TARGETS mbc DESTINATION lib)
-install(TARGETS mbc_test DESTINATION bin)
+install(TARGETS libmbc DESTINATION lib)
+install(TARGETS mbc DESTINATION bin)
 install(FILES "src/libmbc.h" DESTINATION include)
