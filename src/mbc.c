@@ -25,24 +25,29 @@ void print_help() {
 
 void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	uint8_t *buffer, *buffer_out;
+	char *buffer_hex_out;
 	size_t user_key_len, buffer_size, buffer_out_size, chunk_n, chunk_size;
 
 	// Set key
 	user_key_len = strlen(user_key);
-	mbc_set_user_key(user_key, user_key_len);
+	mbc_set_user_key((uint8_t*)user_key, user_key_len);
 
 	chunk_size = user_key_len * CHUNK_FACTOR;
 
 	buffer  = malloc(chunk_size);  //FIXME: handle malloc error
 	chunk_n = 0;
 
-	if (hex_mode) while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
-		if (do_enc) {
-			buffer_out      = mbc_encode_to_hex(buffer, buffer_size, false);
-			buffer_out_size = strlen(buffer_out);
-		}
-		else
-			buffer_out = mbc_decode_from_hex(buffer, &buffer_out_size);
+	if (hex_mode && do_enc) while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+		buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);
+		buffer_out_size = strlen(buffer_hex_out);
+
+		fwrite(buffer_hex_out, 1, buffer_out_size, stdout);
+		free(buffer_hex_out);
+		chunk_n++;
+	}
+
+	else if (hex_mode && !do_enc) while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+		buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);
 
 		fwrite(buffer_out, 1, buffer_out_size, stdout);
 		free(buffer_out);
