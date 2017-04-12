@@ -105,7 +105,7 @@ void mbc_encode_inplace(uint8_t* data, size_t data_size) {
 	/* SWAP */
 	for (i = 0; i < data_size; i++) {
 		for (j = 0; j < oct_key_size; j++)
-			if (data[i] >> oct_key[j][0] != data[i] >> oct_key[j][1])
+			if (((data[i] >> oct_key[j][0]) & 0x01) != ((data[i] >> oct_key[j][1]) & 0x01))
 				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
 }
@@ -117,7 +117,7 @@ void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 	/* SWAP */
 	for (i = 0; i < data_size; i++) {
 		for (j = oct_key_size-1; j >= 0; j--)
-			if (data[i] >> oct_key[j][0] != data[i] >> oct_key[j][1])
+			if (((data[i] >> oct_key[j][0]) & 0x01) != ((data[i] >> oct_key[j][1]) & 0x01))
 				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
 
