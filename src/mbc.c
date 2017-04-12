@@ -35,36 +35,42 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	user_key_len = strlen(user_key);
 	mbc_set_user_key((uint8_t*)user_key, user_key_len);
 
-	chunk_size = user_key_len * CHUNK_FACTOR;
+	chunk_size = user_key_len * CHUNK_FACTOR;  //FIXME: this method is not 100% linear (fails on the last chunk)
 
 	buffer  = malloc(chunk_size);  //FIXME: handle malloc error
 	chunk_n = 0;
 
-	if (hex_mode && do_enc) while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
-		buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);
-		buffer_out_size = strlen(buffer_hex_out);
+	if (hex_mode && do_enc) {
+		while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+			buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);  //FIXME: handle NULL return
+			buffer_out_size = strlen(buffer_hex_out);
 
-		fwrite(buffer_hex_out, 1, buffer_out_size, stdout);
-		free(buffer_hex_out);
-		chunk_n++;
+			fwrite(buffer_hex_out, 1, buffer_out_size, stdout);
+			free(buffer_hex_out);
+			chunk_n++;
+		}
 	}
 
-	else if (hex_mode && !do_enc) while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
-		buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);
+	else if (hex_mode && !do_enc) {
+		while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+			buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);  //FIXME: handle NULL return
 
-		fwrite(buffer_out, 1, buffer_out_size, stdout);
-		free(buffer_out);
-		chunk_n++;
+			fwrite(buffer_out, 1, buffer_out_size, stdout);
+			free(buffer_out);
+			chunk_n++;
+		}
 	}
 
-	else while (buffer_size = fread(buffer, 1, chunk_size, stdin)) {
-		if(do_enc)
-			mbc_encode_inplace(buffer, buffer_size);
-		else
-			mbc_decode_inplace(buffer, buffer_size);
+	else {
+		while (buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+			if(do_enc)
+				mbc_encode_inplace(buffer, buffer_size);
+			else
+				mbc_decode_inplace(buffer, buffer_size);
 
-		fwrite(buffer, 1, buffer_size, stdout);
-		chunk_n++;
+			fwrite(buffer, 1, buffer_size, stdout);
+			chunk_n++;
+		}
 	}
 
 	mbc_free();
