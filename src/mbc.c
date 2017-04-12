@@ -9,7 +9,7 @@
 static const char* VERSION = "0.1";
 static char* cli_name;
 
-static const int CHUNK_FACTOR = 32 << 10;
+static const int CHUNK_FACTOR = 32 << 20;
 
 void print_version() {
 	fprintf(stderr, "%s, v%s\n", cli_name, VERSION);
