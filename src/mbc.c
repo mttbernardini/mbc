@@ -6,8 +6,23 @@
 #include <string.h>
 #include <libmbc.h>
 
-static const char* VERSION = "0.1";
-static char* cli_name;
+static const char* CLI_VERSION = "0.1";
+static char* cli_name; // will be set by main()
+static const char* USAGE_OPT =
+	"(-e | -d) -k key [-x] [-v] [-h]";
+static const char* HELP_MSG =
+	"mbc is a quick tool for encoding/decoding data from stdio using the libmbc\n"
+	"library, which uses the Mattyw&MeBeiM Symmetric Encryption Algorithm.\n\n"
+	"OPTIONS:\n"
+	" -e        Encodes data from stdio and outputs it to stdout.\n"
+	" -d        Decodes data from stdio and outputs it to stdout.\n"
+	" -k <key>  Sets the key for the encryption.\n"
+	" -x        When encoding takes raw input from stdin and outputs encoded\n"
+	"           data as an hexadecimal string to stdout. When decoding takes\n"
+	"           an hexadecimal string representing encoded data from stdin\n"
+	"           and outputs raw decoded data to stdout.\n"
+	" -v        Shows program version and exits.\n"
+	" -h        Shows this help message and exits.\n";
 
 static const int CHUNK_FACTOR = 32 << 20;
 
@@ -57,15 +72,22 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 }
 
 void print_version() {
-	fprintf(stderr, "%s %s\n", cli_name, VERSION);
+	fprintf(stderr, "%s %s\n", cli_name, CLI_VERSION);
 }
 
-void print_invalid() {
-	fprintf(stderr, "Usage: %s (-e | -d) -k key [-x] [-v] [-h]\n", cli_name);
+void print_usage() {
+	fprintf(stderr, "Usage: %s %s\n", cli_name, USAGE_OPT);
 }
 
 void print_help() {
-	print_invalid();
+	print_version();
+	print_usage();
+	fprintf(stderr, "\n%s", HELP_MSG);
+}
+
+void print_invalid() {
+	fprintf(stderr, "Please set a valid mode (-d or -e) and a key (-k).\n");
+	print_usage();
 }
 
 int main(int argc, char* argv[]) {
@@ -109,7 +131,7 @@ int main(int argc, char* argv[]) {
 				print_version();
 				return 1;
 			default:
-				print_invalid();
+				print_usage();
 				return 1;
 		}
 	}
