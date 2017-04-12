@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
-#include "libmbc.h"
+#include <libmbc.h>
 
 static const char* VERSION = "0.1";
 static char* cli_name;

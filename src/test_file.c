@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "libmbc.h"
+#include <libmbc.h>
 
 int main(int argc, char* argv[]) {
 	FILE *f;

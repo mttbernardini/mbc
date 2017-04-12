@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include "libmbc.h"
+#include <libmbc.h>
 
 int main(int argc, char* argv[]) {
 	uint8_t *encoded, *decoded, *user_data, *user_key;
