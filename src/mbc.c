@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <unistd.h>
+#include <getopt.h>
 #include <string.h>
 #include <libmbc.h>
 
@@ -10,18 +10,6 @@ static const char* VERSION = "0.1";
 static char* cli_name;
 
 static const int CHUNK_FACTOR = 32 << 20;
-
-void print_version() {
-	fprintf(stderr, "%s, v%s\n", cli_name, VERSION);
-}
-
-void print_invalid() {
-	fprintf(stderr, "Usage: %s (-e | -d) [-k key] [-x] [-v] [-h]\n", cli_name);
-}
-
-void print_help() {
-	print_invalid();
-}
 
 void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	uint8_t *buffer, *buffer_out;
@@ -68,22 +56,45 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	free(buffer);
 }
 
+void print_version() {
+	fprintf(stderr, "%s %s\n", cli_name, VERSION);
+}
+
+void print_invalid() {
+	fprintf(stderr, "Usage: %s (-e | -d) -k key [-x] [-v] [-h]\n", cli_name);
+}
+
+void print_help() {
+	print_invalid();
+}
+
 int main(int argc, char* argv[]) {
 
 	char opt;
 	char* key;
-	bool do_enc;
-	bool hex_mode = false;
+	bool enc_flag, dec_flag, mode_set, hex_mode;
+
+	key = NULL;
+	hex_mode = false;
+	enc_flag = false;
+	dec_flag = false;
+	mode_set = false;
 
 	cli_name = argv[0];
 
 	while ((opt = getopt(argc, argv, "edk:xvh")) != -1) {
 		switch (opt) {
 			case 'e':
-				do_enc = true;
+				if (!dec_flag) {
+					enc_flag = true;
+					mode_set = true;
+				}
 				break;
 			case 'd':
-				do_enc = false;
+				if (!enc_flag) {
+					dec_flag = true;
+					mode_set = true;
+				}
 				break;
 			case 'k':
 				key = optarg;
@@ -103,9 +114,14 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	fprintf(stderr, "debug: Will encode? %d, hex? %d, key? %s\n\n", do_enc, hex_mode, key);
+	if (!mode_set || key == NULL) {
+		print_invalid();
+		return 1;
+	}
 
-	mbc_core(do_enc, key, hex_mode);
+	fprintf(stderr, "debug: Will encode? %d, hex? %d, key? %s\n\n", enc_flag, hex_mode, key);
+
+	mbc_core(enc_flag, key, hex_mode);
 
 	return 0;
 
