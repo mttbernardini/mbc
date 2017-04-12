@@ -113,7 +113,7 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	// SWAP
 	for (i = 0; i < data_size; i++)
 		for (j = 0; j < oct_key_size; j++)
-			if (edata[i] >> oct_key[j][0] != edata[i] >> oct_key[j][1])
+			if (((edata[i] >> oct_key[j][0]) & 0x01) != ((edata[i] >> oct_key[j][1]) & 0x01))
 				edata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 
 	return edata;
@@ -133,7 +133,7 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 	// SWAP
 	for (i = 0; i < data_size; i++)
 		for (j = oct_key_size-1; j >= 0; j--)
-			if (ddata[i] >> oct_key[j][0] != ddata[i] >> oct_key[j][1])
+			if (((ddata[i] >> oct_key[j][0]) & 0x01) != ((ddata[i] >> oct_key[j][1]) & 0x01))
 				ddata[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 
 	// XOR
