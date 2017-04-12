@@ -32,37 +32,9 @@ int main(int argc, char* argv[]) {
 		printf("%2x ", decoded[i]);
 	printf("\n");
 
-	uint8_t test_raw[] = {0x10, 0xff, 0xaa, 0x01, 0x11};
-	char test_hex[] = "10fFAA0111";
-	size_t test_raw_size, test_hex_size, raw_result_size;
-	uint8_t* raw_result;
-	char* hex_result;
-
-	test_raw_size = sizeof(test_raw);
-	test_hex_size = strlen(test_hex);
-
-	hex_result = mbc_raw_to_hex(test_raw, test_raw_size, false);
-	raw_result = mbc_hex_to_raw(test_hex, &raw_result_size);
-
-	printf("\nTesting conversion:\n   Raw: ");
-	for (i = 0; i < test_raw_size; i++)
-		printf("%02x", test_raw[i]);
-	printf("\n");
-
-	printf("To hex: ");
-	printf("%s\n", hex_result);
-
-	printf("   Hex: ");
-	printf("%s\n", test_hex);
-
-	printf("To raw: ");
-	for (i = 0; i < raw_result_size; i++)
-		printf("%02x", raw_result[i]);
-	printf("\n");
-
+	free(encoded);
+	free(decoded);
 	mbc_free();
-	free(raw_result);
-	free(hex_result);
 
 	return 0;
 }
