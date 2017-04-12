@@ -21,15 +21,15 @@ int main(int argc, char* argv[]) {
 
 	printf("Testing encoding/decoding:\n");
 	for (i = 0; i < user_data_len; i++)
-		printf("%2x ", user_data[i]);
+		printf("%02x ", user_data[i]);
 	printf("\n");
 
 	for (i = 0; i < user_data_len; i++)
-		printf("%2x ", encoded[i]);
+		printf("%02x ", encoded[i]);
 	printf("\n");
 
 	for (i = 0; i < user_data_len; i++)
-		printf("%2x ", decoded[i]);
+		printf("%02x ", decoded[i]);
 	printf("\n");
 
 	free(encoded);
