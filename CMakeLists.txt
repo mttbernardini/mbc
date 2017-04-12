@@ -16,7 +16,7 @@ add_definitions(-Wall)
 
 # Add library
 add_library(libmbc SHARED "src/libmbc.c")
-set_target_properties(libmbc PROPERTIES PREFIX "")
+set_target_properties(libmbc PROPERTIES PREFIX "") # avoids "liblibmbc.so", but maybe this is not the best way to do it.
 
 # Add sources
 add_executable(mbc "src/mbc.c")
@@ -29,6 +29,6 @@ target_link_libraries(mbc_test libmbc)
 target_link_libraries(mbc_test_file libmbc)
 
 # Install
-install(TARGETS libmbc DESTINATION lib)
-install(TARGETS mbc DESTINATION bin)
-install(FILES "src/libmbc.h" DESTINATION include)
+install(TARGETS libmbc DESTINATION lib COMPONENT lib)
+install(TARGETS mbc DESTINATION bin COMPONENT cli)
+install(FILES "src/libmbc.h" DESTINATION include COMPONENT dev)
