@@ -41,7 +41,7 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	chunk_n = 0;
 
 	if (hex_mode && do_enc) {
-		while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
 			buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);  //FIXME: handle NULL return
 			buffer_out_size = strlen(buffer_hex_out);
 
@@ -52,7 +52,7 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	}
 
 	else if (hex_mode && !do_enc) {
-		while(buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
 			buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);  //FIXME: handle NULL return
 
 			fwrite(buffer_out, 1, buffer_out_size, stdout);
@@ -62,7 +62,7 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 	}
 
 	else {
-		while (buffer_size = fread(buffer, 1, chunk_size, stdin)) {
+		while ((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
 			if(do_enc)
 				mbc_encode_inplace(buffer, buffer_size);
 			else
