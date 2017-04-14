@@ -15,7 +15,7 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size);
 /**
  * Frees any dynamically allocated variables (basically the global keys).
  */
-void mbc_free();
+void mbc_free(void);
 
 /**
  * Encodes data in place.

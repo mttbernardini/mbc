@@ -84,7 +84,7 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 	return true;
 }
 
-void mbc_free() {
+void mbc_free(void) {
 	free(user_key);
 	user_key = NULL;
 	user_key_size = 0;
