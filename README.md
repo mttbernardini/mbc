@@ -6,6 +6,25 @@ This repository will provide a C library for the *mbc symmetric encryption algor
 
 NB: This is a remake of the [mbencrypter][1] project, however the new alghorithm is not compatible.
 
+## Installation ##
+
+### Unix systems (Linux, MacOS, etc) ###
+
+Clone the repository and enter the base directory:
+
+	$ git clone https://github.com/mttbernardini/mbc.git
+	$ cd mbc
+
+Create a "build" directory and run `cmake` from there:
+
+	$ mkdir build
+	$ cd build
+	$ cmake ..
+
+Build & install using `make`:
+
+	$ sudo make install
+
 ## Algorithm Description ##
 
 ### Per-Byte XOR encoding ###
@@ -24,3 +43,4 @@ NB: This is a remake of the [mbencrypter][1] project, however the new alghorithm
 
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/blob/master/notes.md#make_oct_key-rationale
+[3]: https://www.cygwin.com/
