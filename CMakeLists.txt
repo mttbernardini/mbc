@@ -14,11 +14,9 @@ endif()
 add_definitions(-std=c99)
 add_definitions(-Wall)
 
-# Where to find libmbc.h
-include_directories("src")
-
 # Add the library
 add_library(libmbc SHARED "src/libmbc.c")
+target_include_directories(libmbc PUBLIC "src/")
 set_target_properties(libmbc PROPERTIES PREFIX "") # avoids "liblibmbc.so", but maybe this is not the best way to do it.
 
 # Add sources
