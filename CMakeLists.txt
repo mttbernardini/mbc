@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project("mbc")
+project("mbc" C)
 
 # In-source build protection
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
