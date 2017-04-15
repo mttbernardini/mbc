@@ -11,7 +11,7 @@ endif()
 #set(MBC_VERSION_MINOR 1)
 
 # Compile in C99 with all warnings
-add_definitions(-std=c99)
+set_property(GLOBAL PROPERTY C_STANDARD 99)
 add_definitions(-Wall)
 
 # Add the library
