@@ -96,23 +96,29 @@ void mbc_free(void) {
 void mbc_encode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i, j;
 
-	/* XOR */
-	for (i = 0; i < data_size; i++)
-		data[i] ^= user_key[i % user_key_size];
-	for (; i < user_key_size; i++)
-		data[i % data_size] ^= user_key[i];
-
 	/* SWAP */
 	for (i = 0; i < data_size; i++) {
 		for (j = 0; j < oct_key_size; j++)
 			if (((data[i] >> oct_key[j][0]) & 0x01) != ((data[i] >> oct_key[j][1]) & 0x01))
 				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
+
+	/* XOR */
+	for (i = 0; i < data_size; i++)
+		data[i] ^= user_key[i % user_key_size];
+	for (; i < user_key_size; i++)
+		data[i % data_size] ^= user_key[i];
 }
 
 void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i;
 	register int8_t j;
+
+	/* XOR */
+	for (i = 0; i < data_size; i++)
+		data[i] ^= user_key[i % user_key_size];
+	for (; i < user_key_size; i++)
+		data[i % data_size] ^= user_key[i];
 
 	/* SWAP */
 	for (i = 0; i < data_size; i++) {
@@ -120,12 +126,6 @@ void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 			if (((data[i] >> oct_key[j][0]) & 0x01) != ((data[i] >> oct_key[j][1]) & 0x01))
 				data[i] ^= (0x01 << oct_key[j][0]) ^ (0x01 << oct_key[j][1]);
 	}
-
-	/* XOR */
-	for (i = 0; i < data_size; i++)
-		data[i] ^= user_key[i % user_key_size];
-	for (; i < user_key_size; i++)
-		data[i % data_size] ^= user_key[i];
 }
 
 uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
