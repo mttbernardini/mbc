@@ -1,5 +1,7 @@
 # MBC - Symmetric Encryption Algorithm by Mattyw&MeBeiM #
 
+[![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=master)](https://travis-ci.org/mttbernardini/mbc)
+
 **THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
 
 This repository will provide a C library for the *mbc symmetric encryption algorithm*, plus a parametric CLI program for `stdio` usage.
