@@ -1,6 +1,6 @@
 # MBC - Symmetric Encryption Algorithm by Mattyw&MeBeiM #
 
-[![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=master)](https://travis-ci.org/mttbernardini/mbc)
+[![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=developing)](https://travis-ci.org/mttbernardini/mbc)
 
 **THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
 
