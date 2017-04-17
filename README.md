@@ -45,4 +45,3 @@ Build & install using `make`:
 
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/blob/developing/notes.md#make_oct_key-rationale
-[3]: https://www.cygwin.com/
