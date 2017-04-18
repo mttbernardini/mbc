@@ -131,10 +131,10 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'h':
 				print_help();
-				return 1;
+				return 0;
 			case 'v':
 				print_version();
-				return 1;
+				return 0;
 			default:
 				print_usage();
 				return 1;
