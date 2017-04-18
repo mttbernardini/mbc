@@ -31,8 +31,8 @@ Build & install using `make`:
 
 ### 1. Bit-Swap encoding, by MeBeiM ###
 - The key is converted into a swap mask (see [notes.md][2] for the detailed mechanism).
-- The swap mask is reduced to generate a swap key, each byte indicating the position of two bits to swap in each byte of data.
-- Each byte of data is processed applying the swaps indicated by the swap key.
+- The swap mask is reduced to generate an `oct_key`, each byte indicating the position of two bits to swap in each byte of data.
+- Each byte of data is processed applying the swaps indicated by the `oct_key`.
 
 ### 2. Per-Byte XOR encoding ###
 - If the key is shorter than data, it will be cycled until the end of data.
