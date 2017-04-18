@@ -7,7 +7,7 @@
 #include <libmbc.h>
 
 static const char* CLI_VERSION = "0.1";
-static char* cli_name; // will be set by main()
+static char* CLI_NAME; // will be set by main()
 static const char* USAGE_OPT = "(-e | -d) -k key [-x] [-v] [-h]";
 static const char* HELP_MSG =
 	"mbc is a quick tool for encoding/decoding data from stdio using the libmbc\n"
@@ -78,11 +78,11 @@ void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
 }
 
 void print_version() {
-	fprintf(stderr, "%s %s\n", cli_name, CLI_VERSION);
+	fprintf(stderr, "%s %s\n", CLI_NAME, CLI_VERSION);
 }
 
 void print_usage() {
-	fprintf(stderr, "Usage: %s %s\n", cli_name, USAGE_OPT);
+	fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_OPT);
 }
 
 void print_help() {
@@ -97,7 +97,6 @@ void print_invalid() {
 }
 
 int main(int argc, char* argv[]) {
-
 	char opt;
 	char* key;
 	bool enc_flag, dec_flag, mode_set, hex_mode;
@@ -108,7 +107,7 @@ int main(int argc, char* argv[]) {
 	dec_flag = false;
 	mode_set = false;
 
-	cli_name = argv[0];
+	CLI_NAME = argv[0];
 
 	while ((opt = getopt(argc, argv, "edk:xvh")) != -1) {
 		switch (opt) {
@@ -152,5 +151,4 @@ int main(int argc, char* argv[]) {
 	mbc_core(enc_flag, key, hex_mode);
 
 	return 0;
-
 }
