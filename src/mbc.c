@@ -8,8 +8,7 @@
 
 static const char* CLI_VERSION = "0.1";
 static char* cli_name; // will be set by main()
-static const char* USAGE_OPT =
-	"(-e | -d) -k key [-x] [-v] [-h]";
+static const char* USAGE_OPT = "(-e | -d) -k key [-x] [-v] [-h]";
 static const char* HELP_MSG =
 	"mbc is a quick tool for encoding/decoding data from stdio using the libmbc\n"
 	"library, which uses the Mattyw&MeBeiM Symmetric Encryption Algorithm.\n\n"
@@ -24,57 +23,58 @@ static const char* HELP_MSG =
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
-static const int CHUNK_FACTOR = 32 << 20;
+static const size_t RAW_CHUNK_SIZE = 32 << 20;
+static const size_t HEX_CHUNK_SIZE = 64 << 20;
 
 void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
-	uint8_t *buffer, *buffer_out;
-	char *buffer_hex_out;
-	size_t user_key_len, buffer_size, buffer_out_size, chunk_n, chunk_size;
+	uint8_t *buffer_in_raw, *buffer_out_raw;
+	char *buffer_in_hex, *buffer_out_hex;
+	size_t user_key_len, bytes_read, bytes_to_write;
 
-	// Set key
 	user_key_len = strlen(user_key);
-	mbc_set_user_key((uint8_t*)user_key, user_key_len);
+	mbc_set_user_key((uint8_t*) user_key, user_key_len);
 
-	chunk_size = user_key_len * CHUNK_FACTOR;  //FIXME: this method is not 100% linear (fails on the last chunk)
+	if (hex_mode) {
+		if (do_enc) {
 
-	buffer  = malloc(chunk_size);  //FIXME: handle malloc error
-	chunk_n = 0;
+			buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
 
-	if (hex_mode && do_enc) {
-		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);  //FIXME: handle NULL return
-			buffer_out_size = strlen(buffer_hex_out);
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
+				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
+				free(buffer_out_hex);
+			}
+		} else {
 
-			fwrite(buffer_hex_out, 1, buffer_out_size, stdout);
-			free(buffer_hex_out);
-			chunk_n++;
+			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);  //TODO: handle malloc error
+
+			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
+				buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
+				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
+				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
+				free(buffer_out_raw);
+			}
 		}
-	}
+	} else {
 
-	else if (hex_mode && !do_enc) {
-		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);  //FIXME: handle NULL return
+		buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
 
-			fwrite(buffer_out, 1, buffer_out_size, stdout);
-			free(buffer_out);
-			chunk_n++;
+		if (do_enc) {
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				mbc_encode_inplace(buffer_in_raw, bytes_read);
+				fwrite(buffer_in_raw, 1, bytes_read, stdout);
+			}
+		} else {
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				mbc_decode_inplace(buffer_in_raw, bytes_read);
+				fwrite(buffer_in_raw, 1, bytes_read, stdout);
+			}
 		}
-	}
 
-	else {
-		while ((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			if(do_enc)
-				mbc_encode_inplace(buffer, buffer_size);
-			else
-				mbc_decode_inplace(buffer, buffer_size);
-
-			fwrite(buffer, 1, buffer_size, stdout);
-			chunk_n++;
-		}
+		free(buffer_in_raw);
 	}
 
 	mbc_free();
-	free(buffer);
 }
 
 void print_version() {
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	fprintf(stderr, "debug: Will encode? %d, hex? %d, key? %s\n\n", enc_flag, hex_mode, key);
+	// fprintf(stderr, "debug: Will encode? %d, hex? %d, key? %s\n\n", enc_flag, hex_mode, key);
 
 	mbc_core(enc_flag, key, hex_mode);
 
