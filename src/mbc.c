@@ -13,7 +13,7 @@ static const char* USAGE_INFO = "[-xvh] (-e | -d) -k <key>";
 static const char* SHORT_DESC =
 	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
 	"a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.\n"
-	"Source code available at https://github.com/mttbernardini/mbc.\n"
+	"Source code available at https://github.com/mttbernardini/mbc.\n";
 static const char* HELP_MSG =
 	"Options:\n"
 	" -e        Encodes data from stdio and outputs it to stdout.\n"
