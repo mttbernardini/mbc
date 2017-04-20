@@ -35,18 +35,20 @@ void print_version(void);
 void print_usage(void);
 void print_help(void);
 void print_invalid(void);
-bool core(bool enc_mode, bool hex_mode);
+int core(bool enc_mode, bool hex_mode);
 
 int main(int argc, char* argv[]) {
 	int ret;
 	char opt, *key;
 	size_t key_size;
-	bool enc, hex, mode_set, key_set, key_ok, core_ok;
+	bool enc, hex, mode_set;
 
 	CLI_NAME = argv[0];
 
-	key = NULL;
-	hex = false;
+	ret      = 0;
+	key      = NULL;
+	hex      = false;
+	mode_set = false;
 
 	while ((opt = getopt(argc, argv, "edk:xvh")) != -1) {
 		switch (opt) {
@@ -71,13 +73,7 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case 'k':
-				if (!key_set) {
-					key_set = true;
-					key = optarg;
-				} else {
-					print_invalid();
-					return 1;
-				}
+				key = optarg;
 				break;
 
 			case 'x':
@@ -102,14 +98,14 @@ int main(int argc, char* argv[]) {
 		print_invalid();
 		return 1;
 	}
-	
+
 	key_size = strlen(key);
-	key_ok   = mbc_set_user_key((uint8_t*) key, key_size);
-	core_ok  = core(enc, hex);
-	mbc_free();
-	
-	if (key_ok && core_ok) return 0;
-	return 1;
+	if(mbc_set_user_key((uint8_t*) key, key_size)) {
+		ret = core(enc, hex);
+		mbc_free();
+	}
+
+	return ret;
 }
 
 void print_version(void) {
@@ -132,23 +128,23 @@ void print_invalid(void) {
 	print_usage();
 }
 
-bool core(bool enc_mode, bool hex_mode) {
+int core(bool enc_mode, bool hex_mode) {
 	uint8_t *buffer_in_raw, *buffer_out_raw;
 	char *buffer_in_hex, *buffer_out_hex;
-	size_t bytes_read, bytes_to_write;	
+	size_t bytes_read, bytes_to_write;
 
 	if (hex_mode) {
 		if (enc_mode) {
 
 			buffer_in_raw = malloc(RAW_CHUNK_SIZE);
 			if (buffer_in_raw == NULL)
-				return false;
+				return 1;
 
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
 				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
 				if (buffer_out_hex == NULL) {
 					free(buffer_in_raw);
-					return false;
+					return 1;
 				}
 
 				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
@@ -160,7 +156,7 @@ bool core(bool enc_mode, bool hex_mode) {
 
 			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);
 			if (buffer_in_hex == NULL)
-				return false;
+				return 1;
 
 			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
 
@@ -168,7 +164,7 @@ bool core(bool enc_mode, bool hex_mode) {
 				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
 				if (buffer_out_raw == NULL) {
 					free(buffer_in_hex);
-					return false;
+					return 1;
 				}
 
 				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
@@ -181,7 +177,7 @@ bool core(bool enc_mode, bool hex_mode) {
 
 		buffer_in_raw = malloc(RAW_CHUNK_SIZE);
 		if (buffer_in_raw == NULL)
-			return false;
+			return 1;
 
 		if (enc_mode) {
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
@@ -198,5 +194,5 @@ bool core(bool enc_mode, bool hex_mode) {
 		free(buffer_in_raw);
 	}
 
-	return true;
+	return 0;
 }
