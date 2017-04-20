@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
 					print_invalid();
 					return 1;
 				}
-
 				break;
+
 			case 'd':
 				if (!mode_set) {
 					enc = false;
@@ -67,20 +67,24 @@ int main(int argc, char* argv[]) {
 					print_invalid();
 					return 1;
 				}
-
 				break;
+
 			case 'k':
 				key = optarg;
 				break;
+
 			case 'x':
 				hex = true;
 				break;
+
 			case 'h':
 				print_help();
 				return 0;
+
 			case 'v':
 				print_version();
 				return 0;
+
 			default:
 				print_usage();
 				return 1;
@@ -137,7 +141,6 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 			}
 
 			free(buffer_in_raw);
-
 		} else {
 
 			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);  //TODO: handle malloc error
@@ -150,7 +153,6 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 			}
 
 			free(buffer_in_hex);
-
 		}
 	}
 	else {
@@ -170,7 +172,6 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 		}
 
 		free(buffer_in_raw);
-
 	}
 
 	mbc_free();
