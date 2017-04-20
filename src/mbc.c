@@ -26,8 +26,8 @@ static const char* HELP_MSG =
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
-static const size_t RAW_CHUNK_SIZE = 32 << 20;
-static const size_t HEX_CHUNK_SIZE = 64 << 20;
+static const size_t RAW_CHUNK_SIZE = 32 << 20;  // TODO: make chunk size user editable,
+static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with linearity?
 
 static char* CLI_NAME;
 
@@ -131,22 +131,29 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 			buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
 
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
+				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);  //TODO: handle null pointer
 				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
 				free(buffer_out_hex);
 			}
+
+			free(buffer_in_raw);
+
 		} else {
 
 			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);  //TODO: handle malloc error
+			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
 
 			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
-				buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
-				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
+				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);  //TODO: handle null pointer
 				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
 				free(buffer_out_raw);
 			}
+
+			free(buffer_in_hex);
+
 		}
-	} else {
+	}
+	else {
 
 		buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
 
@@ -163,6 +170,7 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 		}
 
 		free(buffer_in_raw);
+
 	}
 
 	mbc_free();
