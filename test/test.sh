@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 test_mbc() {
 	printf "[1/4] Generating test files ($(echo $1))... "
 	
