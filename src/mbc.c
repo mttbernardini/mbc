@@ -35,7 +35,7 @@ void print_version(void);
 void print_usage(void);
 void print_help(void);
 void print_invalid(void);
-void mbc_core(bool enc_mode, bool hex_mode, const char* user_key);
+int mbc_core(bool enc_mode, bool hex_mode, const char* user_key);
 
 int main(int argc, char* argv[]) {
 	char opt;
@@ -96,9 +96,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	mbc_core(enc, hex, key);
-
-	return 0;
+	return mbc_core(enc, hex, key);
 }
 
 void print_version(void) {
@@ -121,7 +119,7 @@ void print_invalid(void) {
 	print_usage();
 }
 
-void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
+int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 	uint8_t *buffer_in_raw, *buffer_out_raw;
 	char *buffer_in_hex, *buffer_out_hex;
 	size_t user_key_len, bytes_read, bytes_to_write;
@@ -132,10 +130,17 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 	if (hex_mode) {
 		if (enc_mode) {
 
-			buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
+			buffer_in_raw = malloc(RAW_CHUNK_SIZE);
+			if (buffer_in_raw == NULL)
+				return 1;
 
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);  //TODO: handle null pointer
+				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
+				if (buffer_out_hex == NULL) {
+					free(buffer_in_raw);
+					return 1;
+				}
+
 				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
 				free(buffer_out_hex);
 			}
@@ -143,11 +148,19 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 			free(buffer_in_raw);
 		} else {
 
-			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);  //TODO: handle malloc error
+			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);
+			if (buffer_in_hex == NULL)
+				return 1;
+
 			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
 
 			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
-				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);  //TODO: handle null pointer
+				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
+				if (buffer_out_raw == NULL) {
+					free(buffer_in_hex);
+					return 1;
+				}
+
 				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
 				free(buffer_out_raw);
 			}
@@ -157,7 +170,9 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 	}
 	else {
 
-		buffer_in_raw = malloc(RAW_CHUNK_SIZE);  //TODO: handle malloc error
+		buffer_in_raw = malloc(RAW_CHUNK_SIZE);
+		if (buffer_in_raw == NULL)
+			return 1;
 
 		if (enc_mode) {
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
@@ -175,4 +190,5 @@ void mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 	}
 
 	mbc_free();
+	return 0;
 }
