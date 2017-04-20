@@ -1,5 +1,7 @@
-language: c
+os: linux
 dist: trusty
+sudo: false
+language: c
 git:
   depth: 3
 compiler:
@@ -11,7 +13,7 @@ script:
   - cmake ..
   - make
   - cd ../test
-  - bash test.sh 512K 32K
+  - ./test.sh 512K 32K
 notifications:
   email: false
   webhooks:
