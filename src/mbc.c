@@ -35,12 +35,13 @@ void print_version(void);
 void print_usage(void);
 void print_help(void);
 void print_invalid(void);
-int mbc_core(bool enc_mode, bool hex_mode, const char* user_key);
+bool core(bool enc_mode, bool hex_mode);
 
 int main(int argc, char* argv[]) {
-	char opt;
-	char* key;
-	bool enc, hex, mode_set;
+	int ret;
+	char opt, *key;
+	size_t key_size;
+	bool enc, hex, mode_set, key_set, key_ok, core_ok;
 
 	CLI_NAME = argv[0];
 
@@ -70,7 +71,13 @@ int main(int argc, char* argv[]) {
 				break;
 
 			case 'k':
-				key = optarg;
+				if (!key_set) {
+					key_set = true;
+					key = optarg;
+				} else {
+					print_invalid();
+					return 1;
+				}
 				break;
 
 			case 'x':
@@ -95,8 +102,14 @@ int main(int argc, char* argv[]) {
 		print_invalid();
 		return 1;
 	}
-
-	return mbc_core(enc, hex, key);
+	
+	key_size = strlen(key);
+	key_ok   = mbc_set_user_key((uint8_t*) key, key_size);
+	core_ok  = core(enc, hex);
+	mbc_free();
+	
+	if (key_ok && core_ok) return 0;
+	return 1;
 }
 
 void print_version(void) {
@@ -119,26 +132,23 @@ void print_invalid(void) {
 	print_usage();
 }
 
-int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
+bool core(bool enc_mode, bool hex_mode) {
 	uint8_t *buffer_in_raw, *buffer_out_raw;
 	char *buffer_in_hex, *buffer_out_hex;
-	size_t user_key_len, bytes_read, bytes_to_write;
-
-	user_key_len = strlen(user_key);
-	mbc_set_user_key((uint8_t*) user_key, user_key_len);
+	size_t bytes_read, bytes_to_write;	
 
 	if (hex_mode) {
 		if (enc_mode) {
 
 			buffer_in_raw = malloc(RAW_CHUNK_SIZE);
 			if (buffer_in_raw == NULL)
-				return 1;
+				return false;
 
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
 				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
 				if (buffer_out_hex == NULL) {
 					free(buffer_in_raw);
-					return 1;
+					return false;
 				}
 
 				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
@@ -150,7 +160,7 @@ int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 
 			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);
 			if (buffer_in_hex == NULL)
-				return 1;
+				return false;
 
 			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
 
@@ -158,7 +168,7 @@ int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
 				if (buffer_out_raw == NULL) {
 					free(buffer_in_hex);
-					return 1;
+					return false;
 				}
 
 				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
@@ -167,12 +177,11 @@ int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 
 			free(buffer_in_hex);
 		}
-	}
-	else {
+	} else {
 
 		buffer_in_raw = malloc(RAW_CHUNK_SIZE);
 		if (buffer_in_raw == NULL)
-			return 1;
+			return false;
 
 		if (enc_mode) {
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
@@ -189,6 +198,5 @@ int mbc_core(bool enc_mode, bool hex_mode, const char* user_key) {
 		free(buffer_in_raw);
 	}
 
-	mbc_free();
-	return 0;
+	return true;
 }
