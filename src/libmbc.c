@@ -22,8 +22,8 @@ static size_t oct_key_size;
  * @post `*okey_size_ptr` now contains the size of the `oct_key` generated.
  */
 static mbc_oct_key_t make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_size_ptr) {
-	uint8_t l_bit, r_bit, swap_temp, current, next;
-	uint8_t swap_mask[8] = {0,1,2,3,4,5,6,7};
+	uint8_t l_bit, r_bit, dummy_temp, current, next;
+	uint8_t swap_map[8], dummy_byte[8] = {0,1,2,3,4,5,6,7};
 	bool to_check[8] = {1,1,1,1,1,1,1,1};
 	register size_t i;
 	size_t okey_size;
@@ -39,20 +39,23 @@ static mbc_oct_key_t make_oct_key(const uint8_t* key, size_t key_size, size_t* o
 				r_bit ^= 0x07;
 			}
 
-			swap_temp = swap_mask[l_bit];
-			swap_mask[l_bit] = swap_mask[r_bit];
-			swap_mask[r_bit] = swap_temp;
+			dummy_temp = dummy_byte[l_bit];
+			dummy_byte[l_bit] = dummy_byte[r_bit];
+			dummy_byte[r_bit] = dummy_temp;
 		}
 	}
+
+	for (i = 0; i < 8; i++)
+		swap_map[dummy_byte[i]] = i;
 
 	okey = malloc(sizeof(mbc_oct_key_el_t) * 8);
 	okey_size = 0;
 	for (i = 0; i < 8; i++) {
-		if (i == swap_mask[i]) {
+		if (i == swap_map[i]) {
 			to_check[i] = false;
 		} else if (to_check[i]) {
 			current = i;
-			for (next = swap_mask[i]; next != current; next = swap_mask[next]) {
+			for (next = swap_map[i]; next != current; next = swap_map[next]) {
 				to_check[next] = false;
 				okey[okey_size][0] = current;
 				okey[okey_size][1] = next;

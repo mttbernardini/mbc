@@ -30,9 +30,9 @@ Build & install using `make`:
 ## Algorithm Description ##
 
 ### 1. Bit-Swap encoding, by MeBeiM ###
-- The key is converted into an octal sequence *(see [notes.md][2] for the detailed mechanism)*.
-- Each pair of numbers in the sequence indicate to swap the corrispective n-th bits of each byte of data.
-- A long and randomic key makes the algorithm more effective.
+- The key is converted into a swap map (see [notes.md][2] for the detailed mechanism).
+- The swap map is reduced to generate the `oct_key`, each byte indicating the position of two bits to swap in each byte of data.
+- Each byte of data is processed applying the swaps indicated by the `oct_key`.
 
 ### 2. Per-Byte XOR encoding ###
 - If the key is shorter than data, it will be cycled until the end of data.
