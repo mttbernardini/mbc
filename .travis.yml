@@ -9,7 +9,7 @@ script:
   - cmake ..
   - make
   - cd ../test
-  - bash test.sh 128K 8K
+  - bash test.sh 512K 32K
 notifications:
   email: false
   webhooks:
