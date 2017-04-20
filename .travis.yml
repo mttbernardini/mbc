@@ -8,6 +8,8 @@ script:
   - mkdir build && cd build
   - cmake ..
   - make
+  - cd ../test
+  - bash test.sh
 notifications:
   email: false
   webhooks:
