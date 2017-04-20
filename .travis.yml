@@ -1,5 +1,7 @@
 language: c
 dist: trusty
+git:
+  depth: 3
 compiler:
   - clang
   - gcc
@@ -8,3 +10,12 @@ script:
   - mkdir build && cd build
   - cmake ..
   - make
+notifications:
+  email: false
+  webhooks:
+    urls:
+      - https://fathomless-fjord-24024.herokuapp.com/notify
+    on_success: change
+    on_failure: always
+    on_cancel: never
+    on_error: always
