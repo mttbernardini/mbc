@@ -31,10 +31,10 @@ static const size_t HEX_CHUNK_SIZE = 64 << 20;
 
 static char* CLI_NAME;
 
-void print_version();
-void print_usage();
-void print_help();
-void print_invalid();
+void print_version(void);
+void print_usage(void);
+void print_help(void);
+void print_invalid(void);
 void mbc_core(bool enc_mode, bool hex_mode, const char* user_key);
 
 int main(int argc, char* argv[]) {
@@ -97,22 +97,22 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-void print_version() {
+void print_version(void) {
 	fprintf(stderr, "%s", VERSION_INFO);
 }
 
-void print_usage() {
+void print_usage(void) {
 	fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO);
 }
 
-void print_help() {
+void print_help(void) {
 	print_version();
 	fprintf(stderr, "\n%s\n", SHORT_DESC);
 	print_usage();
 	fprintf(stderr, "\n%s", HELP_MSG);
 }
 
-void print_invalid() {
+void print_invalid(void) {
 	fprintf(stderr, "Please set a valid mode (-d OR -e) and a key (-k).\n");
 	print_usage();
 }
