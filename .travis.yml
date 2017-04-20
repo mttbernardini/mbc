@@ -1,5 +1,7 @@
 language: c
 dist: trusty
+git:
+  depth: 3
 compiler:
   - clang
   - gcc
