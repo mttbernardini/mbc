@@ -1,4 +1,4 @@
-# MBC - Symmetric Encryption Algorithm by Mattyw&MeBeiM #
+# MBC - Mattyw & MeBeiM symmetric encryption algorithm #
 
 [![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=master)](https://travis-ci.org/mttbernardini/mbc)
 

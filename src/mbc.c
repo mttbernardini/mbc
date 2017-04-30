@@ -6,14 +6,16 @@
 #include <string.h>
 #include <libmbc.h>
 
-static const char* CLI_VERSION = "0.1";
-static char* cli_name; // will be set by main()
-static const char* USAGE_OPT =
-	"(-e | -d) -k key [-x] [-v] [-h]";
+#define MBC_VERSION "0.1"
+
+static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
+static const char* USAGE_INFO = "[-xvh] (-e | -d) -k <key>";
+static const char* SHORT_DESC =
+	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
+	"a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.\n"
+	"Source code available at https://github.com/mttbernardini/mbc.\n";
 static const char* HELP_MSG =
-	"mbc is a quick tool for encoding/decoding data from stdio using the libmbc\n"
-	"library, which uses the Mattyw&MeBeiM Symmetric Encryption Algorithm.\n\n"
-	"OPTIONS:\n"
+	"Options:\n"
 	" -e        Encodes data from stdio and outputs it to stdout.\n"
 	" -d        Decodes data from stdio and outputs it to stdout.\n"
 	" -k <key>  Sets the key for the encryption.\n"
@@ -24,118 +26,64 @@ static const char* HELP_MSG =
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
-static const int CHUNK_FACTOR = 32 << 20;
+static const size_t RAW_CHUNK_SIZE = 32 << 20;  // TODO: make chunk size user editable,
+static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with linearity?
 
-void mbc_core(bool do_enc, const char* user_key, bool hex_mode) {
-	uint8_t *buffer, *buffer_out;
-	char *buffer_hex_out;
-	size_t user_key_len, buffer_size, buffer_out_size, chunk_n, chunk_size;
+static char* CLI_NAME;
 
-	// Set key
-	user_key_len = strlen(user_key);
-	mbc_set_user_key((uint8_t*)user_key, user_key_len);
-
-	chunk_size = user_key_len * CHUNK_FACTOR;  //FIXME: this method is not 100% linear (fails on the last chunk)
-
-	buffer  = malloc(chunk_size);  //FIXME: handle malloc error
-	chunk_n = 0;
-
-	if (hex_mode && do_enc) {
-		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			buffer_hex_out  = mbc_encode_to_hex(buffer, buffer_size, false);  //FIXME: handle NULL return
-			buffer_out_size = strlen(buffer_hex_out);
-
-			fwrite(buffer_hex_out, 1, buffer_out_size, stdout);
-			free(buffer_hex_out);
-			chunk_n++;
-		}
-	}
-
-	else if (hex_mode && !do_enc) {
-		while((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			buffer_out = mbc_decode_from_hex((char*)buffer, &buffer_out_size);  //FIXME: handle NULL return
-
-			fwrite(buffer_out, 1, buffer_out_size, stdout);
-			free(buffer_out);
-			chunk_n++;
-		}
-	}
-
-	else {
-		while ((buffer_size = fread(buffer, 1, chunk_size, stdin))) {
-			if(do_enc)
-				mbc_encode_inplace(buffer, buffer_size);
-			else
-				mbc_decode_inplace(buffer, buffer_size);
-
-			fwrite(buffer, 1, buffer_size, stdout);
-			chunk_n++;
-		}
-	}
-
-	mbc_free();
-	free(buffer);
-}
-
-void print_version() {
-	fprintf(stderr, "%s %s\n", cli_name, CLI_VERSION);
-}
-
-void print_usage() {
-	fprintf(stderr, "Usage: %s %s\n", cli_name, USAGE_OPT);
-}
-
-void print_help() {
-	print_version();
-	print_usage();
-	fprintf(stderr, "\n%s", HELP_MSG);
-}
-
-void print_invalid() {
-	fprintf(stderr, "Please set a valid mode (-d or -e) and a key (-k).\n");
-	print_usage();
-}
+void print_version(void);
+void print_usage(void);
+void print_help(void);
+void print_invalid(void);
+void core(bool enc_mode, bool hex_mode, char* user_key);
 
 int main(int argc, char* argv[]) {
+	char opt, *key;
+	bool enc, hex, mode_set;
 
-	char opt;
-	char* key;
-	bool enc_flag, dec_flag, mode_set, hex_mode;
-
-	key = NULL;
-	hex_mode = false;
-	enc_flag = false;
-	dec_flag = false;
+	CLI_NAME = argv[0];
+	key      = NULL;
+	hex      = false;
 	mode_set = false;
-
-	cli_name = argv[0];
 
 	while ((opt = getopt(argc, argv, "edk:xvh")) != -1) {
 		switch (opt) {
 			case 'e':
-				if (!dec_flag) {
-					enc_flag = true;
+				if (!mode_set) {
+					enc = true;
 					mode_set = true;
+				} else {
+					print_invalid();
+					return 1;
 				}
 				break;
+
 			case 'd':
-				if (!enc_flag) {
-					dec_flag = true;
+				if (!mode_set) {
+					enc = false;
 					mode_set = true;
+				} else {
+					print_invalid();
+					return 1;
 				}
 				break;
+
 			case 'k':
 				key = optarg;
 				break;
+
 			case 'x':
-				hex_mode = true;
+				hex = true;
 				break;
+
 			case 'h':
 				print_help();
 				return 0;
+
 			case 'v':
 				print_version();
 				return 0;
+
 			default:
 				print_usage();
 				return 1;
@@ -147,10 +95,98 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	fprintf(stderr, "debug: Will encode? %d, hex? %d, key? %s\n\n", enc_flag, hex_mode, key);
-
-	mbc_core(enc_flag, key, hex_mode);
+	core(enc, hex, key);
 
 	return 0;
+}
 
+void print_version(void) {
+	fprintf(stderr, "%s", VERSION_INFO);
+}
+
+void print_usage(void) {
+	fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO);
+}
+
+void print_help(void) {
+	print_version();
+	fprintf(stderr, "\n%s\n", SHORT_DESC);
+	print_usage();
+	fprintf(stderr, "\n%s", HELP_MSG);
+}
+
+void print_invalid(void) {
+	fprintf(stderr, "Please set a valid mode (-d OR -e) and a key (-k).\n");
+	print_usage();
+}
+
+void core(bool enc_mode, bool hex_mode, char* user_key) {
+	uint8_t *buffer_in_raw, *buffer_out_raw;
+	char *buffer_in_hex, *buffer_out_hex;
+	size_t user_key_size, bytes_read, bytes_to_write;
+	
+	user_key_size = strlen(user_key);
+	mbc_set_user_key((uint8_t*) user_key, user_key_size);
+	atexit(mbc_free);
+
+	if (hex_mode) {
+		if (enc_mode) {
+
+			buffer_in_raw = malloc(RAW_CHUNK_SIZE);
+			if (buffer_in_raw == NULL)
+				exit(1);
+
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
+				if (buffer_out_hex == NULL) {
+					free(buffer_in_raw);
+					exit(1);
+				}
+
+				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
+				free(buffer_out_hex);
+			}
+
+			free(buffer_in_raw);
+		} else {
+
+			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);
+			if (buffer_in_hex == NULL)
+				exit(1);
+
+			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
+
+			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
+				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
+				if (buffer_out_raw == NULL) {
+					free(buffer_in_hex);
+					exit(1);
+				}
+
+				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
+				free(buffer_out_raw);
+			}
+
+			free(buffer_in_hex);
+		}
+	} else {
+
+		buffer_in_raw = malloc(RAW_CHUNK_SIZE);
+		if (buffer_in_raw == NULL)
+			exit(1);
+
+		if (enc_mode) {
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				mbc_encode_inplace(buffer_in_raw, bytes_read);
+				fwrite(buffer_in_raw, 1, bytes_read, stdout);
+			}
+		} else {
+			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
+				mbc_decode_inplace(buffer_in_raw, bytes_read);
+				fwrite(buffer_in_raw, 1, bytes_read, stdout);
+			}
+		}
+
+		free(buffer_in_raw);
+	}
 }

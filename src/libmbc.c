@@ -9,9 +9,9 @@
  ***********************/
 
 static uint8_t* user_key;
-static size_t user_key_size;
+static size_t   user_key_size;
 static uint8_t* oct_key;
-static size_t oct_key_size;
+static size_t   oct_key_size;
 
 /**
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
@@ -35,7 +35,7 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 				r_bit ^= 0x07;
 			}
 
-			dummy_temp = dummy_byte[l_bit];
+			dummy_temp        = dummy_byte[l_bit];
 			dummy_byte[l_bit] = dummy_byte[r_bit];
 			dummy_byte[r_bit] = dummy_temp;
 		}
@@ -46,6 +46,7 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 
 	okey = malloc(8);
 	okey_size = 0;
+
 	for (i = 0; i < 8; i++) {
 		if (i == swap_map[i]) {
 			to_check[i] = false;
@@ -60,6 +61,7 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 	}
 
 	*okey_size_ptr = okey_size;
+
 	return okey;
 }
 
@@ -74,8 +76,8 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 		return false;
 
 	memcpy(user_key, key, key_size);
-	user_key_size = key_size;
-	oct_key = make_oct_key(user_key, user_key_size, &oct_key_size);
+	user_key_size  = key_size;
+	oct_key        = make_oct_key(user_key, user_key_size, &oct_key_size);
 	if (oct_key == NULL)
 		return false;
 
@@ -183,8 +185,8 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	size_t hex_size;
 	register size_t i;
 
-	hex_size = raw_size * 2 + 1;
-	hex = malloc(hex_size);
+	hex_size   = raw_size * 2 + 1;
+	hex        = malloc(hex_size);
 	if (hex == NULL)
 		return NULL;
 
@@ -206,9 +208,9 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	size_t hex_size, raw_size;
 	register size_t i;
 
-	hex_size      = strlen(hex);
-	raw_size      = hex_size/2;
-	raw           = malloc(raw_size);
+	hex_size   = strlen(hex);
+	raw_size   = hex_size / 2;
+	raw        = malloc(raw_size);
 	if (raw == NULL)
 		return NULL;
 
