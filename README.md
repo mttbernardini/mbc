@@ -6,7 +6,7 @@
 
 This repository will provide a C library for the *mbc symmetric encryption algorithm*, plus a parametric CLI program for `stdio` usage.
 
-NB: This is a remake of the [mbencrypter][1] project, however the new alghorithm is not compatible.
+NB: This is a remake of the [mbencrypter][1] project, however the new algorithm is not compatible.
 
 ## Installation ##
 
