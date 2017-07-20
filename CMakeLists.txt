@@ -13,6 +13,7 @@ endif()
 # Compiler settings
 set_property(GLOBAL PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS_COVERAGE "--coverage")
 
 # Add library
 add_library(libmbc SHARED "src/libmbc.c")

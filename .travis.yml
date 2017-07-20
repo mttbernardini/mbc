@@ -8,8 +8,10 @@ compiler:
   - gcc
 script:
   - mkdir build && cd build
-  - cmake ..
+  - cmake -DCMAKE_BUILD_TYPE=Coverage ..
   - make mbc_test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 notifications:
   email: false
   webhooks:
