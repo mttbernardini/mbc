@@ -154,9 +154,8 @@ void core(bool enc_mode, bool hex_mode, char* user_key) {
 			if (buffer_in_hex == NULL)
 				exit(1);
 
-			buffer_in_hex[HEX_CHUNK_SIZE] = '\0';
-
 			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
+				buffer_in_hex[bytes_read] = '\0';
 				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
 				if (buffer_out_raw == NULL) {
 					free(buffer_in_hex);
