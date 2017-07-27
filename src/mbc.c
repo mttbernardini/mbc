@@ -124,7 +124,7 @@ void core(bool enc_mode, bool hex_mode, char* user_key) {
 	uint8_t *buffer_in_raw, *buffer_out_raw;
 	char *buffer_in_hex, *buffer_out_hex;
 	size_t user_key_size, bytes_read, bytes_to_write;
-	
+
 	user_key_size = strlen(user_key);
 	mbc_set_user_key((uint8_t*) user_key, user_key_size);
 	atexit(mbc_free);
