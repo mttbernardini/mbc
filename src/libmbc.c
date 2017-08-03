@@ -25,6 +25,12 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 	register size_t i;
 	size_t okey_size;
 
+	okey = malloc(8);
+	if (okey == NULL)
+		return NULL;
+
+	okey_size = 0;
+
 	for (i = 0; i < key_size; i++) {
 		l_bit = (key[i] >> 4) & 0x07;
 		r_bit = (key[i] >> 1) & 0x07;
@@ -43,12 +49,6 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 
 	for (i = 0; i < 8; i++)
 		swap_map[dummy_byte[i]] = i;
-
-	okey = malloc(8);
-	if (okey == NULL)
-		return NULL;
-
-	okey_size = 0;
 
 	for (i = 0; i < 8; i++) {
 		if (i == swap_map[i]) {
