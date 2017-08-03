@@ -45,6 +45,9 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 		swap_map[dummy_byte[i]] = i;
 
 	okey = malloc(8);
+	if (okey == NULL)
+		return NULL;
+
 	okey_size = 0;
 
 	for (i = 0; i < 8; i++) {
