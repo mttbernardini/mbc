@@ -40,7 +40,7 @@ install(FILES "src/libmbc.h" DESTINATION include)
 
 # Testing
 add_custom_target(mbc_test
-	COMMAND ${CMAKE_SOURCE_DIR}/test/test.sh 512K 32K
+	COMMAND ${CMAKE_SOURCE_DIR}/test/test.sh 512k 32k
 	DEPENDS mbc
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
 	COMMENT "Running Test"

@@ -13,14 +13,14 @@ test_mbc() {
 	printf "[1/4] Generating test files ($(echo $1))... "
 
 	# Random file "dummy_raw", raw bytes
-	head --quiet --bytes=$1 /dev/urandom 2>/dev/null > dummy_raw
+	dd ibs=1 count=$1 if=/dev/urandom 2> /dev/null > dummy_raw
 	if [ $? -ne 0 ]; then
 		printf "ERR!\n"
 		return 1
 	fi
 
 	# Random file "dummy_hex", hexadecimal ASCII
-	head --quiet --bytes=$1 /dev/urandom 2>/dev/null | hexdump -ve '1/1 "%02x"' 2>/dev/null > dummy_hex
+	dd ibs=1 count=$1 if=/dev/urandom 2> /dev/null | hexdump -ve '1/1 "%02x"' > dummy_hex
 	if [ $? -eq 0 ]; then
 		printf "OK.\n"
 	else
@@ -32,7 +32,7 @@ test_mbc() {
 
 	# Random alphanumeric key including some special characters
 	local test_key
-	test_key=$(head /dev/urandom | tr -dc 'A-Za-z0-9!#$%&()*+,-./:;<=>?@[\]^_`{|}~' | head --quiet --bytes=$2 2>/dev/null )
+	test_key=$( LC_ALL=C tr -dc 'A-Za-z0-9!#$%&)(*+,-./:;<=>?@[\]^_`{|}~' < /dev/urandom | dd ibs=1 count=$2 2> /dev/null )
 	if [ $? -eq 0 ]; then
 		printf "OK.\n"
 	else
@@ -43,14 +43,14 @@ test_mbc() {
 	printf "[3/4] Running test... "
 
 	# ENCRYPT/DECRYPT "dummy_raw" into "dummy_raw_out"
-	../build/mbc -ek "$test_key" 2>/dev/null < dummy_raw | ../build/mbc -dk "$test_key" 2>/dev/null > dummy_raw_out
+	../build/mbc -ek "$test_key" < dummy_raw | ../build/mbc -dk "$test_key" > dummy_raw_out
 	if [ $? -ne 0 ]; then
 		printf "ERR!\n"
 		return 1
 	fi
 
 	# DECRYPT/ENCRYPT "dummy_hex" into "dummy_hex_out"
-	../build/mbc -dxk "$test_key" 2>/dev/null < dummy_hex | ../build/mbc -exk "$test_key" 2>/dev/null > dummy_hex_out
+	../build/mbc -dxk "$test_key" < dummy_hex | ../build/mbc -exk "$test_key" > dummy_hex_out
 	if [ $? -eq 0 ]; then
 		printf "DONE.\n"
 	else
@@ -61,7 +61,7 @@ test_mbc() {
 	printf "[4/4] Comparing results... "
 
 	# Compare output with original
-	cmp --quiet dummy_raw dummy_raw_out && cmp --quiet dummy_hex dummy_hex_out
+	cmp -s dummy_raw dummy_raw_out && cmp -s dummy_hex dummy_hex_out
 	if [ $? -eq 0 ]; then
 		printf "OK.\n"
 	else
