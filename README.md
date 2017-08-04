@@ -1,6 +1,8 @@
 # MBC - Mattyw & MeBeiM symmetric encryption algorithm #
 
 [![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=master)](https://travis-ci.org/mttbernardini/mbc)
+[![Build status](https://ci.appveyor.com/api/projects/status/hce0psyqhycrridq/branch/master?svg=true)](https://ci.appveyor.com/project/mttbernardini/mbc/branch/master)
+[![codecov](https://codecov.io/gh/mttbernardini/mbc/branch/master/graph/badge.svg)](https://codecov.io/gh/mttbernardini/mbc)
 
 **THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
 
