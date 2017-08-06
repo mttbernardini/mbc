@@ -189,8 +189,8 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	size_t hex_size;
 	register size_t i;
 
-	hex_size   = raw_size * 2 + 1;
-	hex        = malloc(hex_size);
+	hex_size = raw_size * 2 + 1;
+	hex      = malloc(hex_size);
 	if (hex == NULL)
 		return NULL;
 
@@ -212,9 +212,9 @@ uint8_t* mbc_hex_to_raw(const char* hex, size_t* raw_size_ptr) {
 	size_t hex_size, raw_size;
 	register size_t i;
 
-	hex_size   = strlen(hex);
-	raw_size   = hex_size / 2;
-	raw        = malloc(raw_size);
+	hex_size = strlen(hex);
+	raw_size = hex_size / 2;
+	raw      = malloc(raw_size);
 	if (raw == NULL)
 		return NULL;
 
