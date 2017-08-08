@@ -243,12 +243,10 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	if (hex == NULL)
 		return NULL;
 
-	if (uppercase)
-		for (i = 0; i < raw_size; i++)
-			memcpy(hex + i*2, HEXMAP_UPPER[raw[i]], 2);
-	else
-		for (i = 0; i < raw_size; i++)
-			memcpy(hex + i*2, HEXMAP_LOWER[raw[i]], 2);
+	const char  (*HEXMAP )[2] = uppercase ? HEXMAP_UPPER : HEXMAP_LOWER;
+
+	for (i = 0; i < raw_size; i++)
+		memcpy(hex + i*2, HEXMAP[raw[i]], 2);
 
 	hex[hex_size-1] = '\0';
 
