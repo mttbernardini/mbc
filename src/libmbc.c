@@ -129,8 +129,8 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 		return false;
 
 	memcpy(user_key, key, key_size);
-	user_key_size  = key_size;
-	oct_key        = make_oct_key(user_key, user_key_size, &oct_key_size);
+	user_key_size = key_size;
+	oct_key       = make_oct_key(user_key, user_key_size, &oct_key_size);
 	if (oct_key == NULL)
 		return false;
 
@@ -243,7 +243,7 @@ char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase) {
 	if (hex == NULL)
 		return NULL;
 
-	const char  (*HEXMAP )[2] = uppercase ? HEXMAP_UPPER : HEXMAP_LOWER;
+	const char (*HEXMAP)[2] = uppercase ? HEXMAP_UPPER : HEXMAP_LOWER;
 
 	for (i = 0; i < raw_size; i++)
 		memcpy(hex + i*2, HEXMAP[raw[i]], 2);
