@@ -42,3 +42,26 @@ CTEST(libmbc, mbc_free) {
 	ASSERT_NULL(user_key);
 	ASSERT_NULL(oct_key);
 }
+
+
+CTEST(libmbc, mbc_raw_to_hex__uppercase) {
+	char* hex = mbc_raw_to_hex((uint8_t[]){0x00, 0x0a, 0x61}, 3, true);
+	ASSERT_NOT_NULL(hex);
+	ASSERT_STR("000A61", hex);
+	free(hex);
+}
+
+CTEST(libmbc, mbc_raw_to_hex__lowercase) {
+	char* hex = mbc_raw_to_hex((uint8_t[]){0x00, 0x0a, 0x61}, 3, false);
+	ASSERT_NOT_NULL(hex);
+	ASSERT_STR("000a61", hex);
+	free(hex);
+}
+
+CTEST(libmbc, mbc_hex_to_raw) {
+	size_t n;
+	uint8_t* raw = mbc_hex_to_raw("000a61B2f", &n);
+	ASSERT_NOT_NULL(raw);
+	ASSERT_DATA(((uint8_t[]){0x00, 0x0a, 0x61, 0xb2}), 4, raw, n);
+	free(raw);
+}
