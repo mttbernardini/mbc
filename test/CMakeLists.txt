@@ -1,17 +1,20 @@
-enable_testing()
-
-# Group all the unit tests in a single variable
+# Group all test file names in apropriate variables
 file(GLOB unit_tests_src "test/unit/*.unit.c")
+file(GLOB integration_tests_src "test/integration/*.int.c")
 
-# Add main executable for all unit tests
+# Add main executables for tests
 add_executable(unit_tests EXCLUDE_FROM_ALL "test/unit/main.c" ${unit_tests_src})
+add_executable(integration_tests EXCLUDE_FROM_ALL "test/integration/main.c" ${integration_tests_src})
 target_include_directories(unit_tests PUBLIC "src" "test")
+target_include_directories(integration_tests PUBLIC "src" "test")
 
-# Workaround for building the test before running it with CMake's CTest... horrible ikr
-# add_test(unit_tests_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target unit_tests)
-# add_test(unit_tests_run unit_tests)
-# set_tests_properties(unit_tests_run PROPERTIES DEPENDS unit_tests_build)
+# Add mbc_ prefix to executables
+set_target_properties(unit_tests PROPERTIES OUTPUT_NAME mbc_unit_tests)
+set_target_properties(integration_tests PROPERTIES OUTPUT_NAME mbc_integration_tests)
 
-ctest_build(TARGET unit_tests)
-#set(CTEST_BUILD_TARGET unit_tests)
-add_test(unit_tests unit_tests)
+add_custom_target(
+	mbc_test 
+	COMMAND ./mbc_unit_tests
+	COMMAND ./mbc_integration_tests
+	DEPENDS unit_tests integration_tests
+)

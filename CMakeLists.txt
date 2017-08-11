@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.8.8) # NB: 3.4 is needed for WINDOWS_EXPORT_ALL_SYMBOLS to work
 project("MBC" LANGUAGES C)
-include(CTest)
 
 # Prevent in-source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
