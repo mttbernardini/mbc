@@ -15,7 +15,6 @@ cmake_policy(SET CMP0042 OLD) # we don't care about this policy. Set to suppress
 # Compiler settings
 set_property(GLOBAL PROPERTY C_STANDARD 99)
 set(CMAKE_C_FLAGS "-Wall -Wextra")
-set(CMAKE_C_FLAGS_COVERAGE "--coverage")
 
 # Add library
 add_library(libmbc SHARED "src/libmbc.c")
@@ -24,6 +23,12 @@ set_target_properties(libmbc PROPERTIES
 	OUTPUT_NAME "mbc" # avoids "liblibmbc" name
 	WINDOWS_EXPORT_ALL_SYMBOLS TRUE # for MSVC
 )
+if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
+	set_target_properties(libmbc PROPERTIES
+		COMPILE_FLAGS "--coverage"
+		LINK_FLAGS "--coverage"
+	)
+endif()
 
 # Add executable
 add_executable(mbc "src/mbc.c")
