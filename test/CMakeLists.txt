@@ -13,8 +13,8 @@ set_target_properties(unit_tests PROPERTIES OUTPUT_NAME mbc_unit_tests)
 set_target_properties(integration_tests PROPERTIES OUTPUT_NAME mbc_integration_tests)
 
 add_custom_target(
-	mbc_test 
+	mbc_test
 	COMMAND ./mbc_unit_tests
 	COMMAND ./mbc_integration_tests
-	DEPENDS unit_tests integration_tests
+	DEPENDS mbc unit_tests integration_tests
 )
