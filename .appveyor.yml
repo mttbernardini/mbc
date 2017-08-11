@@ -1,18 +1,12 @@
 version: '{build}'
 clone_depth: 3
 init:
-- cmd: >-
-    set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-
-    set PATH=C:\MinGW\bin;%PATH%
+ - cmd: set PATH=%PATH:C:\Program Files\Git\usr\bin;=%;C:\MinGW\bin;
 build_script:
-- cmd: >-
-    mkdir build
-
-    cd build
-
+ - cmd: |
+    mkdir build && cd build
     cmake -G "MinGW Makefiles" ..
-
-    cmake --build . --target mbc_test
-test: off
+    mingw32-make
+test_script:
+ - cmd: mingw32-make mbc_test
 deploy: off
