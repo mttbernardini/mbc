@@ -9,4 +9,4 @@ build_script:
     mingw32-make
 test_script:
  - cmd: mingw32-make mbc_test
-deploy: offi
+deploy: off
