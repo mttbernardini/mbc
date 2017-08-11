@@ -1,4 +1,4 @@
-/* Copyright 2011-2016 Bas van den Berg
+/* Copyright 2011-2017 Bas van den Berg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,22 @@
 #ifndef CTEST_H
 #define CTEST_H
 
-#ifdef __GNUC__
-#define CTEST_IMPL_FORMAT_PRINTF(a, b) __attribute__ ((format(printf, a, b)))
+#if defined _WIN32 || defined __CYGWIN__
+#ifndef WIN32
+#define WIN32
+#endif
+#endif
+
+#ifndef WIN32
 #define CTEST_IMPL_WEAK __attribute__ ((weak))
 #else
-#define CTEST_IMPL_FORMAT_PRINTF(a, b)
 #define CTEST_IMPL_WEAK
+#endif
+
+#ifdef __GNUC__
+#define CTEST_IMPL_FORMAT_PRINTF(a, b) __attribute__ ((format(printf, a, b)))
+#else
+#define CTEST_IMPL_FORMAT_PRINTF(a, b)
 #endif
 
 #include <inttypes.h> /* intmax_t, uintmax_t, PRI* */
@@ -33,9 +43,6 @@ typedef void (*ctest_teardown_func)(void*);
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wstrict-prototypes"
 #endif
 
 struct ctest {
@@ -54,8 +61,6 @@ struct ctest {
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
-#elif defined(__clang__)
-#pragma clang diagnostic pop
 #endif
 
 #define CTEST_IMPL_NAME(name) ctest_##name
@@ -63,28 +68,13 @@ struct ctest {
 #define CTEST_IMPL_TNAME(sname, tname) CTEST_IMPL_NAME(sname##_##tname)
 
 #define CTEST_IMPL_MAGIC (0xdeadbeef)
-#if defined(__APPLE__)
+#ifdef __APPLE__
 #define CTEST_IMPL_SECTION __attribute__ ((used, section ("__DATA, .ctest"), aligned(1)))
-#elif defined(_MSC_VER)
-#pragma data_seg(".ctest$u")
-#define CTEST_IMPL_SECTION __declspec(allocate(".ctest$u"))
 #else
 #define CTEST_IMPL_SECTION __attribute__ ((used, section (".ctest"), aligned(1)))
 #endif
 
-#if defined(_MSC_VER)
-# define CTEST_IMPL_STRUCT(sname, tname, tskip, tdata, tsetup, tteardown) \
-    static struct ctest CTEST_IMPL_SECTION CTEST_IMPL_TNAME(sname, tname) = { \
-        .ssname=#sname, \
-        .ttname=#tname, \
-        .run = CTEST_IMPL_FNAME(sname, tname), \
-        .data = tdata, \
-        .setup = (ctest_setup_func) tsetup, \
-        .teardown = (ctest_teardown_func) tteardown, \
-        .skip = tskip, \
-        .magic = CTEST_IMPL_MAGIC }
-#else
-# define CTEST_IMPL_STRUCT(sname, tname, tskip, tdata, tsetup, tteardown) \
+#define CTEST_IMPL_STRUCT(sname, tname, tskip, tdata, tsetup, tteardown) \
     static struct ctest CTEST_IMPL_TNAME(sname, tname) CTEST_IMPL_SECTION = { \
         .ssname=#sname, \
         .ttname=#tname, \
@@ -94,17 +84,18 @@ struct ctest {
         .teardown = (ctest_teardown_func) tteardown, \
         .skip = tskip, \
         .magic = CTEST_IMPL_MAGIC }
-#endif
-
-#define CTEST_DATA(sname) struct CTEST_IMPL_NAME(sname##_data)
 
 #define CTEST_SETUP(sname) \
-    void CTEST_IMPL_WEAK CTEST_IMPL_NAME(sname##_setup)(struct CTEST_IMPL_NAME(sname##_data)* data); \
     void CTEST_IMPL_WEAK CTEST_IMPL_NAME(sname##_setup)(struct CTEST_IMPL_NAME(sname##_data)* data)
 
 #define CTEST_TEARDOWN(sname) \
-    void CTEST_IMPL_WEAK CTEST_IMPL_NAME(sname##_teardown)(struct CTEST_IMPL_NAME(sname##_data)* data); \
     void CTEST_IMPL_WEAK CTEST_IMPL_NAME(sname##_teardown)(struct CTEST_IMPL_NAME(sname##_data)* data)
+
+#define CTEST_DATA(sname) \
+    struct CTEST_IMPL_NAME(sname##_data); \
+    CTEST_SETUP(sname); \
+    CTEST_TEARDOWN(sname); \
+    struct CTEST_IMPL_NAME(sname##_data)
 
 #define CTEST_IMPL_CTEST(sname, tname, tskip) \
     static void CTEST_IMPL_FNAME(sname, tname)(void); \
@@ -120,11 +111,9 @@ struct ctest {
 #endif
 
 #define CTEST_IMPL_CTEST2(sname, tname, tskip) \
-    static struct CTEST_IMPL_NAME(sname##_data) CTEST_IMPL_NAME(sname##_data); \
-    CTEST_SETUP(sname); \
-    CTEST_TEARDOWN(sname); \
+    static struct CTEST_IMPL_NAME(sname##_data) CTEST_IMPL_NAME(sname##_##tname##_data); \
     static void CTEST_IMPL_FNAME(sname, tname)(struct CTEST_IMPL_NAME(sname##_data)* data); \
-    CTEST_IMPL_STRUCT(sname, tname, tskip, &CTEST_IMPL_NAME(sname##_data), CTEST_IMPL_SETUP_FNAME(sname), CTEST_IMPL_TEARDOWN_FNAME(sname)); \
+    CTEST_IMPL_STRUCT(sname, tname, tskip, &CTEST_IMPL_NAME(sname##_##tname##_data), CTEST_IMPL_SETUP_FNAME(sname), CTEST_IMPL_TEARDOWN_FNAME(sname)); \
     static void CTEST_IMPL_FNAME(sname, tname)(struct CTEST_IMPL_NAME(sname##_data)* data)
 
 
@@ -191,39 +180,10 @@ void assert_dbl_far(double exp, double real, double tol, const char* caller, int
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#ifdef _MSC_VER
-# include <process.h> /* for getpid() */
-# include <io.h> /* for _isatty() */
-# define isatty _isatty
-#else
-# include <unistd.h>
-#endif
-
-#if defined(__linux__) || defined(__APPLE__)
-# include <sys/time.h>
-#elif defined(_MSC_VER)
-# include <windows.h>
-# include <time.h>
-# pragma warning(disable : 4244)
-int gettimeofday(struct timeval *tv, struct timezone *tz)
-{
-	time_t rawtime;
-	LARGE_INTEGER tickPerSecond;
-	LARGE_INTEGER tick;
-
-	time(&rawtime);
-	tv->tv_sec = (long)rawtime;
-	QueryPerformanceFrequency(&tickPerSecond);
-	QueryPerformanceCounter(&tick);
-	tv->tv_usec = (tick.QuadPart % tickPerSecond.QuadPart);
-	return 0;
-}
-#else
-# error Cannot find any system time file
-#endif
 
 #ifdef __APPLE__
 #include <dlfcn.h>
@@ -263,20 +223,16 @@ static void vprint_errormsg(const char* const fmt, va_list ap) CTEST_IMPL_FORMAT
 static void print_errormsg(const char* const fmt, ...) CTEST_IMPL_FORMAT_PRINTF(1, 2);
 
 static void vprint_errormsg(const char* const fmt, va_list ap) {
-	// (v)snprintf returns the number that would have been written
-#ifdef _MSC_VER
-  const int ret = vsnprintf_s(ctest_errormsg, MSG_SIZE, ctest_errorsize, fmt, ap);
-#else
-  const int ret = vsnprintf(ctest_errormsg, ctest_errorsize, fmt, ap);
-#endif
+    // (v)snprintf returns the number that would have been written
+    const int ret = vsnprintf(ctest_errormsg, ctest_errorsize, fmt, ap);
     if (ret < 0) {
-		ctest_errormsg[0] = 0x00;
+        ctest_errormsg[0] = 0x00;
     } else {
-    	const size_t size = (size_t) ret;
-    	const size_t s = (ctest_errorsize <= size ? size -ctest_errorsize : size);
-    	// ctest_errorsize may overflow at this point
-		ctest_errorsize -= s;
-		ctest_errormsg += s;
+        const size_t size = (size_t) ret;
+        const size_t s = (ctest_errorsize <= size ? size -ctest_errorsize : size);
+        // ctest_errorsize may overflow at this point
+        ctest_errorsize -= s;
+        ctest_errormsg += s;
     }
 }
 
@@ -289,14 +245,14 @@ static void print_errormsg(const char* const fmt, ...) {
 
 static void msg_start(const char* color, const char* title) {
     if (color_output) {
-    	print_errormsg("%s", color);
+        print_errormsg("%s", color);
     }
     print_errormsg("  %s: ", title);
 }
 
 static void msg_end(void) {
     if (color_output) {
-    	print_errormsg(ANSI_NORMAL);
+        print_errormsg(ANSI_NORMAL);
     }
     print_errormsg("\n");
 }
@@ -316,9 +272,6 @@ void CTEST_LOG(const char* fmt, ...)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 #endif
 
 void CTEST_ERR(const char* fmt, ...)
@@ -336,8 +289,6 @@ void CTEST_ERR(const char* fmt, ...)
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
-#elif defined(__clang__)
-#pragma clang diagnostic pop
 #endif
 
 void assert_str(const char* exp, const char*  real, const char* caller, int line) {
@@ -497,26 +448,14 @@ static void *find_symbol(struct ctest *test, const char *fname)
 static void sighandler(int signum)
 {
     char msg[128];
-#if !defined(_MSC_VER) && defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200809L
     sprintf(msg, "[SIGNAL %d: %s]", signum, sys_siglist[signum]);
-#else
-# ifdef _MSC_VER
-    sprintf_s(msg, 128, "[SIGNAL %d]", signum);
-# else
-    sprintf(msg, "[SIGNAL %d]", signum);
-# endif
-#endif
     color_print(ANSI_BRED, msg);
     fflush(stdout);
 
     /* "Unregister" the signal handler and send the signal back to the process
      * so it can terminate as expected */
     signal(signum, SIG_DFL);
-#if defined(_MSC_VER)
-    raise(signum);
-#else
     kill(getpid(), signum);
-#endif
 }
 #endif
 
@@ -616,11 +555,7 @@ int ctest_main(int argc, const char *argv[])
 
     const char* color = (num_fail) ? ANSI_BRED : ANSI_GREEN;
     char results[80];
-# ifdef _MSC_VER
-    sprintf_s(results, 80, "RESULTS: %d tests (%d ok, %d failed, %d skipped) ran in %" PRIu64 " ms", total, num_ok, num_fail, num_skip, (t2 - t1)/1000);
-# else
     sprintf(results, "RESULTS: %d tests (%d ok, %d failed, %d skipped) ran in %" PRIu64 " ms", total, num_ok, num_fail, num_skip, (t2 - t1)/1000);
-# endif
     color_print(color, results);
     return num_fail;
 }
@@ -628,3 +563,4 @@ int ctest_main(int argc, const char *argv[])
 #endif
 
 #endif
+
