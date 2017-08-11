@@ -65,3 +65,20 @@ CTEST(libmbc, mbc_hex_to_raw) {
 	ASSERT_DATA(((uint8_t[]){0x00, 0x0a, 0x61, 0xb2}), 4, raw, n);
 	free(raw);
 }
+
+
+CTEST(libmbc, mbc_encode__null_key) {
+	uint8_t data[] = {0x5d};
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
+	mbc_encode_inplace(data, 1);
+	ASSERT_DATA((uint8_t[]){0x5d}, 1, data, 1);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_decode__null_key) {
+	uint8_t data[] = {0x5d};
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
+	mbc_decode_inplace(data, 1);
+	ASSERT_DATA((uint8_t[]){0x5d}, 1, data, 1);
+	mbc_free();
+}
