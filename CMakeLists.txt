@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.8) # NB: 3.4 is needed for WINDOWS_EXPORT_ALL_SYMBOLS to work
 project("MBC" LANGUAGES C)
+include(CTest)
 
 # Prevent in-source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -38,10 +39,5 @@ install(TARGETS libmbc
 install(TARGETS mbc DESTINATION bin)
 install(FILES "src/libmbc.h" DESTINATION include)
 
-# Testing
-add_custom_target(mbc_test
-	COMMAND ${CMAKE_SOURCE_DIR}/test/test.sh 512k 32k
-	DEPENDS mbc
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
-	COMMENT "Running Test"
-)
+# Include cmake file for tests
+include("test/CMakeLists.txt")
