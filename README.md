@@ -1,8 +1,8 @@
 # MBC - Mattyw & MeBeiM symmetric encryption algorithm #
 
-[![travis build](https://img.shields.io/travis/mttbernardini/mbc/dev-cutest.svg)](https://travis-ci.org/mttbernardini/mbc)
-[![appveyor build](https://img.shields.io/appveyor/ci/mttbernardini/mbc/dev-ctest.svg)](https://ci.appveyor.com/project/mttbernardini/mbc/branch/dev-ctest)
-[![codecov](https://img.shields.io/codecov/c/github/mttbernardini/mbc/dev-cutest.svg)](https://codecov.io/gh/mttbernardini/mbc/branch/dev-ctest)
+[![travis][travis-img]][travis-link]
+[![appveyor][appveyor-img]][appveyor-link]
+[![codecov][codecov-img]][codecov-link]
 
 **THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
 
@@ -44,6 +44,12 @@ Build & install using `make`:
 ---
 © Matteo Bernardini & Marco Bonelli, 2017
 
-
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/blob/developing/notes.md#make_oct_key-rationale
+
+[travis-img]:    https://img.shields.io/travis/mttbernardini/mbc/dev-cutest.svg
+[travis-link]:   https://travis-ci.org/mttbernardini/mbc
+[appveyor-img]:  https://img.shields.io/appveyor/ci/mttbernardini/mbc/dev-ctest.svg
+[appveyor-link]: https://ci.appveyor.com/project/mttbernardini/mbc/branch/dev-ctest
+[codecov-img]:   https://img.shields.io/codecov/c/github/mttbernardini/mbc/dev-cutest.svg
+[codecov-link]:  https://codecov.io/gh/mttbernardini/mbc/branch/dev-ctest
