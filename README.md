@@ -47,9 +47,9 @@ Build & install using `make`:
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/blob/developing/notes.md#make_oct_key-rationale
 
-[travis-img]:    https://img.shields.io/travis/mttbernardini/mbc/dev-cutest.svg
+[travis-img]:    https://img.shields.io/travis/mttbernardini/mbc/dev-ctest.svg
 [travis-link]:   https://travis-ci.org/mttbernardini/mbc
 [appveyor-img]:  https://img.shields.io/appveyor/ci/mttbernardini/mbc/dev-ctest.svg
 [appveyor-link]: https://ci.appveyor.com/project/mttbernardini/mbc/branch/dev-ctest
-[codecov-img]:   https://img.shields.io/codecov/c/github/mttbernardini/mbc/dev-cutest.svg
+[codecov-img]:   https://img.shields.io/codecov/c/github/mttbernardini/mbc/dev-ctest.svg
 [codecov-link]:  https://codecov.io/gh/mttbernardini/mbc/branch/dev-ctest
