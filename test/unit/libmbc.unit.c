@@ -67,7 +67,7 @@ CTEST(libmbc, mbc_hex_to_raw) {
 }
 
 
-CTEST(libmbc, mbc_encode__null_key) {
+CTEST(libmbc, mbc_encode_inplace__null_key) {
 	uint8_t data[] = {0x5d};
 	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
 	mbc_encode_inplace(data, 1);
@@ -75,10 +75,74 @@ CTEST(libmbc, mbc_encode__null_key) {
 	mbc_free();
 }
 
-CTEST(libmbc, mbc_decode__null_key) {
+CTEST(libmbc, mbc_decode_inplace__null_key) {
 	uint8_t data[] = {0x5d};
 	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
 	mbc_decode_inplace(data, 1);
 	ASSERT_DATA((uint8_t[]){0x5d}, 1, data, 1);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_encode__matching_sizes) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d}, 1));
+	// swap: 1-5
+	// xor:  0x2d
+	uint8_t* encoded = mbc_encode((uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0011 0000 ^ 0010 1101 → 0001 1101
+	ASSERT_DATA((uint8_t[]){0x1d}, 1, encoded, 1);
+	free(encoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_decode__matching_sizes) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d}, 1));
+	// xor:  0x2d
+	// swap: 1-5
+	uint8_t* decoded = mbc_decode((uint8_t[]){0x1d}, 1);  // 0001 1101 ^ 0010 1101 → swap 0011 0000 → 0001 0010
+	ASSERT_DATA((uint8_t[]){0x12}, 1, decoded, 1);
+	free(decoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_encode__longer_key) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d, 0x47}, 2));
+	// swap: 1-5  3-4
+	// xor:  0x2d 0x47 → 0x6a
+	uint8_t* encoded = mbc_encode((uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0010 1000 ^ 0110 1010 → 0100 0010
+	ASSERT_DATA((uint8_t[]){0x42}, 1, encoded, 1);
+	free(encoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_decode__longer_key) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d, 0x47}, 2));
+	// xor:  0x2d 0x47 → 0x6a
+	// swap: 1-5  3-4
+	uint8_t* decoded = mbc_decode((uint8_t[]){0x42}, 1);  // 0100 0010 ^ 0110 1010 → swap 0010 1000 → 0001 0010
+	ASSERT_DATA((uint8_t[]){0x12}, 1, decoded, 1);
+	free(decoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_encode__longer_data) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	// swap: 3-4
+	// xor:  0x47
+	uint8_t* encoded = mbc_encode((uint8_t[]){0x57, 0x5a}, 2);
+	// swap 0101 0111 → 0100 1111 ^ 0100 0111 → 0000 1000
+	// swap 0101 1010 → 0101 1010 ^ 0100 0111 → 0001 1101
+	ASSERT_DATA(((uint8_t[]){0x08, 0x1d}), 2, encoded, 2);
+	free(encoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_decode__longer_data) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	// xor:  0x47
+	// swap: 3-4
+	uint8_t* decoded = mbc_decode((uint8_t[]){0x08, 0x1d}, 2);
+	// 0000 1000 ^ 0100 0111 → swap 0100 1111 → 0101 0111
+	// 0001 1101 ^ 0100 0111 → swap 0101 1010 → 0101 1010
+	ASSERT_DATA(((uint8_t[]){0x57, 0x5a}), 2, decoded, 2);
+	free(decoded);
 	mbc_free();
 }
