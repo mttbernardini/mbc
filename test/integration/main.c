@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <time.h>
-#include <stdlib.h>
 
 #define CTEST_MAIN
 #define CTEST_COLOR_OK
