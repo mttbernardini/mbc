@@ -1,8 +1,8 @@
 # MBC - Mattyw & MeBeiM symmetric encryption algorithm #
 
-[![Build Status](https://travis-ci.org/mttbernardini/mbc.svg?branch=master)](https://travis-ci.org/mttbernardini/mbc)
-[![Build status](https://ci.appveyor.com/api/projects/status/hce0psyqhycrridq/branch/master?svg=true)](https://ci.appveyor.com/project/mttbernardini/mbc/branch/master)
-[![codecov](https://codecov.io/gh/mttbernardini/mbc/branch/master/graph/badge.svg)](https://codecov.io/gh/mttbernardini/mbc)
+[![travis][travis-img]][travis-link]
+[![appveyor][appveyor-img]][appveyor-link]
+[![codecov][codecov-img]][codecov-link]
 
 **THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
 
@@ -47,3 +47,10 @@ Build & install using `make`:
 
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/blob/master/notes.md#make_oct_key-rationale
+
+[travis-img]:    https://img.shields.io/travis/mttbernardini/mbc/master.svg
+[travis-link]:   https://travis-ci.org/mttbernardini/mbc
+[appveyor-img]:  https://img.shields.io/appveyor/ci/mttbernardini/mbc/master.svg
+[appveyor-link]: https://ci.appveyor.com/project/mttbernardini/mbc/branch/master
+[codecov-img]:   https://img.shields.io/codecov/c/github/mttbernardini/mbc/master.svg
+[codecov-link]:  https://codecov.io/gh/mttbernardini/mbc/branch/master
