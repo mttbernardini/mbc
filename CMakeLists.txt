@@ -40,10 +40,5 @@ install(TARGETS libmbc
 install(TARGETS mbc DESTINATION bin)
 install(FILES "src/libmbc.h" DESTINATION include)
 
-# Testing
-add_custom_target(mbc_test
-	COMMAND ${CMAKE_SOURCE_DIR}/test/test.sh 512k 32k
-	DEPENDS mbc
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
-	COMMENT "Running Test"
-)
+# Include cmake file for tests
+include("test/CMakeLists.txt")
