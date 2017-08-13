@@ -146,3 +146,29 @@ CTEST(libmbc, mbc_decode__longer_data) {
 	free(decoded);
 	mbc_free();
 }
+
+
+CTEST(libmbc, mbc_encode_to_hex) {
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	// swap: 3-4
+	// xor:  0x47
+	char* encoded = mbc_encode_to_hex((uint8_t[]){0x57, 0x5a}, 2, false);
+	// swap 0101 0111 → 0100 1111 ^ 0100 0111 → 0000 1000
+	// swap 0101 1010 → 0101 1010 ^ 0100 0111 → 0001 1101
+	ASSERT_STR("081d", encoded);
+	free(encoded);
+	mbc_free();
+}
+
+CTEST(libmbc, mbc_decode_from_hex) {
+	size_t dec_size;
+	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	// xor:  0x47
+	// swap: 3-4
+	uint8_t* decoded = mbc_decode_from_hex("081d", &dec_size);
+	// 0000 1000 ^ 0100 0111 → swap 0100 1111 → 0101 0111
+	// 0001 1101 ^ 0100 0111 → swap 0101 1010 → 0101 1010
+	ASSERT_DATA(((uint8_t[]){0x57, 0x5a}), 2, decoded, dec_size);
+	free(decoded);
+	mbc_free();
+}
