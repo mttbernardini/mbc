@@ -29,7 +29,7 @@ static void random_test_data(uint8_t** key, void* data, void* expected, size_t* 
 		(*key)[i] = (uint8_t)(rand() % 0xFF);
 
 	if (hex) {
-		*(char**)data     = malloc(*data_size + 1);
+		*(char**)data = malloc(*data_size + 1);
 
 		if (uppercase)
 			for (i = 0; i < *data_size; i++)
@@ -46,7 +46,7 @@ static void random_test_data(uint8_t** key, void* data, void* expected, size_t* 
 		} else {
 			*(char**)expected = malloc(*data_size);
 			memcpy(*(char**)expected, *(char**)data, *data_size - 1);
-			(*(char**)expected)[*data_size] = '\0';
+			(*(char**)expected)[*data_size - 1] = '\0';
 		}
 	} else {
 		*(uint8_t**)data     = malloc(*data_size);
