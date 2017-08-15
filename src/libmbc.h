@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef size_t mbc_state_t;
+
 /**
  * Sets the value of global `user_key` and calculates global `oct_key`.
  * @ret `true` on success, `false` otherwise.

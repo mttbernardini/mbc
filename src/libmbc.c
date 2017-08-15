@@ -181,6 +181,37 @@ void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 				data[i] ^= oct_key[j];
 }
 
+// TODO: move somewhere else (change name, form, whatever???)
+extern inline void mbc_init_state(mbc_state_t* state) {
+	*state = 0;
+};
+
+// TODO: move somewhere else (change name, form, whatever???)
+extern inline void mbc_reset_state(mbc_state_t* state) {
+	*state = 0;
+}
+
+void mbc_encode_chunk_inplace(uint8_t* chunk, size_t chunk_size, mbc_state_t* state) {
+	register size_t i, j;
+
+	/* SWAP */
+	for (i = 0; i < chunk_size; i++)
+		for (j = 0; j < oct_key_size; j++)
+			if (((chunk[i] & oct_key[j]) != oct_key[j]) && ((chunk[i] & oct_key[j]) != 0x00))
+				chunk[i] ^= oct_key[j];
+
+	/* XOR */
+	for (i = 0, j = *state; i < chunk_size; i++, j++)
+		chunk[i] ^= user_key[j % user_key_size];
+
+	*state = j % user_key_size;
+
+	/* This has to be removed:
+	if (chunk_size > 0)
+		for (; j < user_key_size; i++, j++)
+			chunk[i % chunk_size] ^= user_key[j];*/
+}
+
 uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 	uint8_t* edata;
 
