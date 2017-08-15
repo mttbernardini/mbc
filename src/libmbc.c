@@ -158,19 +158,21 @@ void mbc_encode_inplace(uint8_t* data, size_t data_size) {
 	/* XOR */
 	for (i = 0; i < data_size; i++)
 		data[i] ^= user_key[i % user_key_size];
-	for (; i < user_key_size && data_size > 0; i++)
-		data[i % data_size] ^= user_key[i];
+	if (data_size > 0)
+		for (; i < user_key_size; i++)
+			data[i % data_size] ^= user_key[i];
 }
 
 void mbc_decode_inplace(uint8_t* data, size_t data_size) {
 	register size_t i;
-	register int8_t j;
+	register int_fast8_t j;
 
 	/* XOR */
 	for (i = 0; i < data_size; i++)
 		data[i] ^= user_key[i % user_key_size];
-	for (; i < user_key_size && data_size > 0; i++)
-		data[i % data_size] ^= user_key[i];
+	if (data_size > 0)
+		for (; i < user_key_size; i++)
+			data[i % data_size] ^= user_key[i];
 
 	/* SWAP */
 	for (i = 0; i < data_size; i++)
