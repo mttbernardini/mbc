@@ -9,10 +9,12 @@
  **      PRIVATE      **
  ***********************/
 
-static uint8_t* user_key;
-static size_t   user_key_size;
-static uint8_t* oct_key;
-static size_t   oct_key_size;
+struct mbc_token_s {
+	uint8_t*  xor_key;
+	size_t    xor_key_size;
+	uint8_t*  swap_key;
+	size_t    swap_key_size;
+};
 
 static const char HEXMAP_UPPER[256][2] = {
 	"00", "01", "02", "03", "04", "05", "06", "07",	"08", "09", "0A", "0B", "0C", "0D", "0E", "0F",
@@ -66,9 +68,9 @@ static const uint8_t HEXMAP_REVERSE[128] = {
 /**
  * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
  * @ret  Generated octal key, `NULL` if the key cannot be `malloc`ated.
- * @post `*okey_size_ptr` now contains the size of the `oct_key` generated.
+ * @post `*okey_size_ptr` now contains the size of the `swap_key` generated.
  */
-static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_size_ptr) {
+static uint8_t* make_swap_key(const uint8_t* key, size_t key_size, size_t* okey_size_ptr) {
 	uint8_t l_bit, r_bit, dummy_temp, current, next, *okey;
 	uint8_t swap_map[8], dummy_byte[8] = {0,1,2,3,4,5,6,7};
 	bool to_check[8] = {1,1,1,1,1,1,1,1};
@@ -123,96 +125,65 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
  **      PUBLIC      **
  **********************/
 
-bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
-	user_key = malloc(key_size);
-	if (user_key == NULL)
-		return false;
+mbc_token_t mbc_generate_token(const uint8_t* key, size_t key_size) {
+	mbc_token_t tok = malloc(sizeof(struct mbc_token_s));
+	if (tok == NULL)
+		return NULL;
 
-	memcpy(user_key, key, key_size);
-	user_key_size = key_size;
-	oct_key       = make_oct_key(user_key, user_key_size, &oct_key_size);
-	if (oct_key == NULL)
-		return false;
+	tok->xor_key = malloc(key_size);
+	if (tok->xor_key == NULL)
+		return NULL;
 
-	return true;
+	memcpy(tok->xor_key, key, key_size);
+	tok->xor_key_size = key_size;
+
+	tok->swap_key = make_swap_key(key, key_size, &(tok->swap_key_size));
+	if (tok->swap_key == NULL)
+		return NULL;
+
+	return tok;
 }
 
-void mbc_free(void) {
-	free(user_key);
-	user_key = NULL;
-	user_key_size = 0;
-	free(oct_key);
-	oct_key = NULL;
-	oct_key_size = 0;
+void mbc_free_token(mbc_token_t tok) {
+	free(tok->xor_key);
+	free(tok->swap_key);
+	free(tok);
 }
 
-void mbc_encode_inplace(uint8_t* data, size_t data_size) {
+void mbc_encode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 	register size_t i, j;
 
 	/* SWAP */
 	for (i = 0; i < data_size; i++)
-		for (j = 0; j < oct_key_size; j++)
-			if (((data[i] & oct_key[j]) != oct_key[j]) && ((data[i] & oct_key[j]) != 0x00))
-				data[i] ^= oct_key[j];
+		for (j = 0; j < key->swap_key_size; j++)
+			if (((data[i] & key->swap_key[j]) != key->swap_key[j]) && ((data[i] & key->swap_key[j]) != 0x00))
+				data[i] ^= key->swap_key[j];
 
 	/* XOR */
 	for (i = 0; i < data_size; i++)
-		data[i] ^= user_key[i % user_key_size];
-	if (data_size > 0)
-		for (; i < user_key_size; i++)
-			data[i % data_size] ^= user_key[i];
+		data[i] ^= key->xor_key[i % key->xor_key_size];
+	for (; i < key->xor_key_size && data_size > 0; i++)
+		data[i % data_size] ^= key->xor_key[i];
 }
 
-void mbc_decode_inplace(uint8_t* data, size_t data_size) {
+void mbc_decode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 	register size_t i;
 	register int_fast8_t j;
 
 	/* XOR */
 	for (i = 0; i < data_size; i++)
-		data[i] ^= user_key[i % user_key_size];
-	if (data_size > 0)
-		for (; i < user_key_size; i++)
-			data[i % data_size] ^= user_key[i];
+		data[i] ^= key->xor_key[i % key->xor_key_size];
+	for (; i < key->xor_key_size && data_size > 0; i++)
+		data[i % data_size] ^= key->xor_key[i];
 
 	/* SWAP */
 	for (i = 0; i < data_size; i++)
-		for (j = oct_key_size-1; j >= 0; j--)
-			if (((data[i] & oct_key[j]) != oct_key[j]) && ((data[i] & oct_key[j]) != 0x00))
-				data[i] ^= oct_key[j];
+		for (j = key->swap_key_size-1; j >= 0; j--)
+			if (((data[i] & key->swap_key[j]) != key->swap_key[j]) && ((data[i] & key->swap_key[j]) != 0x00))
+				data[i] ^= key->swap_key[j];
 }
 
-// TODO: move somewhere else (change name, form, whatever???)
-extern inline void mbc_init_state(mbc_state_t* state) {
-	*state = 0;
-};
-
-// TODO: move somewhere else (change name, form, whatever???)
-extern inline void mbc_reset_state(mbc_state_t* state) {
-	*state = 0;
-}
-
-void mbc_encode_chunk_inplace(uint8_t* chunk, size_t chunk_size, mbc_state_t* state) {
-	register size_t i, j;
-
-	/* SWAP */
-	for (i = 0; i < chunk_size; i++)
-		for (j = 0; j < oct_key_size; j++)
-			if (((chunk[i] & oct_key[j]) != oct_key[j]) && ((chunk[i] & oct_key[j]) != 0x00))
-				chunk[i] ^= oct_key[j];
-
-	/* XOR */
-	for (i = 0, j = *state; i < chunk_size; i++, j++)
-		chunk[i] ^= user_key[j % user_key_size];
-
-	*state = j % user_key_size;
-
-	/* This has to be removed:
-	if (chunk_size > 0)
-		for (; j < user_key_size; i++, j++)
-			chunk[i % chunk_size] ^= user_key[j];*/
-}
-
-uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
+uint8_t* mbc_encode(mbc_token_t key, const uint8_t* data, size_t data_size) {
 	uint8_t* edata;
 
 	edata = malloc(data_size);
@@ -220,12 +191,12 @@ uint8_t* mbc_encode(const uint8_t* data, size_t data_size) {
 		return NULL;
 
 	memcpy(edata, data, data_size);
-	mbc_encode_inplace(edata, data_size);
+	mbc_encode_inplace(key, edata, data_size);
 
 	return edata;
 }
 
-uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
+uint8_t* mbc_decode(mbc_token_t key, const uint8_t* data, size_t data_size) {
 	uint8_t* ddata;
 
 	ddata = malloc(data_size);
@@ -233,16 +204,16 @@ uint8_t* mbc_decode(const uint8_t* data, size_t data_size) {
 		return NULL;
 
 	memcpy(ddata, data, data_size);
-	mbc_decode_inplace(ddata, data_size);
+	mbc_decode_inplace(key, ddata, data_size);
 
 	return ddata;
 }
 
-char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) {
+char* mbc_encode_to_hex(mbc_token_t key, const uint8_t* raw_in, size_t raw_size, bool uppercase) {
 	uint8_t* encoded_data;
 	char* hex_out;
 
-	encoded_data = mbc_encode(raw_in, raw_size);
+	encoded_data = mbc_encode(key, raw_in, raw_size);
 	if (encoded_data == NULL)
 		return NULL;
 
@@ -252,7 +223,7 @@ char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase) 
 	return hex_out;
 }
 
-uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr) {
+uint8_t* mbc_decode_from_hex(mbc_token_t key, const char* hex_in, size_t* decoded_size_ptr) {
 	uint8_t *raw_data;
 	size_t raw_size;
 
@@ -260,7 +231,7 @@ uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr) {
 	if (raw_data == NULL)
 		return NULL;
 
-	mbc_decode_inplace(raw_data, raw_size);
+	mbc_decode_inplace(key, raw_data, raw_size);
 	*decoded_size_ptr = raw_size;
 
 	return raw_data;

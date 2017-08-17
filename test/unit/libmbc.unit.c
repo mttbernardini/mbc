@@ -1,46 +1,52 @@
 #include <libmbc.c>
 #include <ctest.h>
 
-CTEST(libmbc, mbc_set_user_key__no_complement) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x22}, 1));
-	ASSERT_NOT_NULL(user_key);
-	ASSERT_NOT_NULL(oct_key);
-	ASSERT_DATA((uint8_t[]){0x22}, 1, user_key, user_key_size);
-	ASSERT_DATA((uint8_t[]){0x06}, 1, oct_key, oct_key_size); // 00100010 → 010 001 = swap 2 with 1 → 0000 0110 → 0x06
-	mbc_free();
+CTEST(libmbc, mbc_generate_token__no_complement) {
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x22}, 1);
+	ASSERT_NOT_NULL(key);
+	ASSERT_NOT_NULL(key->xor_key);
+	ASSERT_NOT_NULL(key->swap_key);
+	ASSERT_DATA((uint8_t[]){0x22}, 1, key->xor_key, key->xor_key_size);
+	ASSERT_DATA((uint8_t[]){0x06}, 1, key->swap_key, key->swap_key_size); // 00100010 → 010 001 = swap 2 with 1 → 0000 0110 → 0x06
+	mbc_free_token(key);
 }
 
-CTEST(libmbc, mbc_set_user_key__complement) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d}, 1));
-	ASSERT_NOT_NULL(user_key);
-	ASSERT_NOT_NULL(oct_key);
-	ASSERT_DATA((uint8_t[]){0x2d}, 1, user_key, user_key_size);
-	ASSERT_DATA((uint8_t[]){0x22}, 1, oct_key, oct_key_size); // 00101101 → 101 001 = swap 5 with 1 → 0010 0010 → 0x22
-	mbc_free();
+CTEST(libmbc, mbc_generate_token__complement) {
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x2d}, 1);
+	ASSERT_NOT_NULL(key);
+	ASSERT_NOT_NULL(key->xor_key);
+	ASSERT_NOT_NULL(key->swap_key);
+	ASSERT_DATA((uint8_t[]){0x2d}, 1, key->xor_key, key->xor_key_size);
+	ASSERT_DATA((uint8_t[]){0x22}, 1, key->swap_key, key->swap_key_size); // 00101101 → 101 001 = swap 5 with 1 → 0010 0010 → 0x22
+	mbc_free_token(key);
 }
 
-CTEST(libmbc, mbc_set_user_key__complement_indifferent) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
-	ASSERT_NOT_NULL(user_key);
-	ASSERT_NOT_NULL(oct_key);
-	ASSERT_DATA((uint8_t[]){0x47}, 1, user_key, user_key_size);
-	ASSERT_DATA((uint8_t[]){0x18}, 1, oct_key, oct_key_size); // 01000111 → 100 011 = swap 4 with 3 → 0001 1000 → 0x18
-	mbc_free();
+CTEST(libmbc, mbc_generate_token__complement_indifferent) {
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
+	ASSERT_NOT_NULL(key->xor_key);
+	ASSERT_NOT_NULL(key->swap_key);
+	ASSERT_DATA((uint8_t[]){0x47}, 1, key->xor_key, key->xor_key_size);
+	ASSERT_DATA((uint8_t[]){0x18}, 1, key->swap_key, key->swap_key_size); // 01000111 → 100 011 = swap 4 with 3 → 0001 1000 → 0x18
+	mbc_free_token(key);
 }
 
-CTEST(libmbc, mbc_set_user_key__empty) {
-	mbc_set_user_key((uint8_t[]){}, 0);
-	ASSERT_EQUAL(0, user_key_size);
-	ASSERT_EQUAL(0, oct_key_size);
-	mbc_free();
+CTEST(libmbc, mbc_generate_token__empty) {
+	mbc_token_t key = mbc_generate_token((uint8_t[]){}, 0);
+	ASSERT_EQUAL(0, key->xor_key_size);
+	ASSERT_EQUAL(0, key->swap_key_size);
+	mbc_free_token(key);
 }
 
-CTEST(libmbc, mbc_free) {
-	mbc_free();
-	ASSERT_EQUAL(0, user_key_size);
-	ASSERT_EQUAL(0, oct_key_size);
-	ASSERT_NULL(user_key);
-	ASSERT_NULL(oct_key);
+CTEST(libmbc, mbc_free_token) {
+	mbc_token_t key = malloc(sizeof(struct mbc_token_s));
+	*key = (struct mbc_token_s){
+		.xor_key = NULL,
+		.xor_key_size = 0,
+		.swap_key = NULL,
+		.swap_key_size = 0
+	};
+	mbc_free_token(key);
 }
 
 
@@ -84,128 +90,140 @@ CTEST(libmbc, mbc_hex_to_raw__empty) {
 
 CTEST(libmbc, mbc_encode_inplace__null_key) {
 	uint8_t data[] = {0x5d};
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
-	mbc_encode_inplace(data, 1);
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x00}, 1);
+	ASSERT_NOT_NULL(key);
+	mbc_encode_inplace(key, data, 1);
 	ASSERT_DATA((uint8_t[]){0x5d}, 1, data, 1);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode_inplace__null_key) {
 	uint8_t data[] = {0x5d};
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x00}, 1));
-	mbc_decode_inplace(data, 1);
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x00}, 1);
+	ASSERT_NOT_NULL(key);
+	mbc_decode_inplace(key, data, 1);
 	ASSERT_DATA((uint8_t[]){0x5d}, 1, data, 1);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_encode__matching_sizes) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x2d}, 1);
+	ASSERT_NOT_NULL(key);
 	// swap: 1-5
 	// xor:  0x2d
-	uint8_t* encoded = mbc_encode((uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0011 0000 ^ 0010 1101 → 0001 1101
+	uint8_t* encoded = mbc_encode(key, (uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0011 0000 ^ 0010 1101 → 0001 1101
 	ASSERT_DATA((uint8_t[]){0x1d}, 1, encoded, 1);
 	free(encoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode__matching_sizes) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x2d}, 1);
+	ASSERT_NOT_NULL(key);
 	// xor:  0x2d
 	// swap: 1-5
-	uint8_t* decoded = mbc_decode((uint8_t[]){0x1d}, 1);  // 0001 1101 ^ 0010 1101 → swap 0011 0000 → 0001 0010
+	uint8_t* decoded = mbc_decode(key, (uint8_t[]){0x1d}, 1);  // 0001 1101 ^ 0010 1101 → swap 0011 0000 → 0001 0010
 	ASSERT_DATA((uint8_t[]){0x12}, 1, decoded, 1);
 	free(decoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_encode__longer_key) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d, 0x47}, 2));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x2d, 0x47}, 2);
+	ASSERT_NOT_NULL(key);
 	// swap: 1-5  3-4
 	// xor:  0x2d 0x47 → 0x6a
-	uint8_t* encoded = mbc_encode((uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0010 1000 ^ 0110 1010 → 0100 0010
+	uint8_t* encoded = mbc_encode(key, (uint8_t[]){0x12}, 1);  // swap 0001 0010 → 0010 1000 ^ 0110 1010 → 0100 0010
 	ASSERT_DATA((uint8_t[]){0x42}, 1, encoded, 1);
 	free(encoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode__longer_key) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x2d, 0x47}, 2));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x2d, 0x47}, 2);
+	ASSERT_NOT_NULL(key);
 	// xor:  0x2d 0x47 → 0x6a
 	// swap: 1-5  3-4
-	uint8_t* decoded = mbc_decode((uint8_t[]){0x42}, 1);  // 0100 0010 ^ 0110 1010 → swap 0010 1000 → 0001 0010
+	uint8_t* decoded = mbc_decode(key, (uint8_t[]){0x42}, 1);  // 0100 0010 ^ 0110 1010 → swap 0010 1000 → 0001 0010
 	ASSERT_DATA((uint8_t[]){0x12}, 1, decoded, 1);
 	free(decoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_encode__longer_data) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// swap: 3-4
 	// xor:  0x47
-	uint8_t* encoded = mbc_encode((uint8_t[]){0x57, 0x5a}, 2);
+	uint8_t* encoded = mbc_encode(key, (uint8_t[]){0x57, 0x5a}, 2);
 	// swap 0101 0111 → 0100 1111 ^ 0100 0111 → 0000 1000
 	// swap 0101 1010 → 0101 1010 ^ 0100 0111 → 0001 1101
 	ASSERT_DATA(((uint8_t[]){0x08, 0x1d}), 2, encoded, 2);
 	free(encoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode__longer_data) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// xor:  0x47
 	// swap: 3-4
-	uint8_t* decoded = mbc_decode((uint8_t[]){0x08, 0x1d}, 2);
+	uint8_t* decoded = mbc_decode(key, (uint8_t[]){0x08, 0x1d}, 2);
 	// 0000 1000 ^ 0100 0111 → swap 0100 1111 → 0101 0111
 	// 0001 1101 ^ 0100 0111 → swap 0101 1010 → 0101 1010
 	ASSERT_DATA(((uint8_t[]){0x57, 0x5a}), 2, decoded, 2);
 	free(decoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 
 CTEST(libmbc, mbc_encode_to_hex) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// swap: 3-4
 	// xor:  0x47
-	char* encoded = mbc_encode_to_hex((uint8_t[]){0x57, 0xe2}, 2, false);
+	char* encoded = mbc_encode_to_hex(key, (uint8_t[]){0x57, 0xe2}, 2, false);
 	// swap 0101 0111 → 0100 1111 ^ 0100 0111 → 0000 1000
 	// swap 1110 0010 → 1110 0010 ^ 0100 0111 → 1010 0101
 	ASSERT_STR("08a5", encoded);
 	free(encoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_encode_to_hex__empty) {
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// swap: 3-4
 	// xor:  0x47
-	char* encoded = mbc_encode_to_hex((uint8_t[]){}, 0, false);
+	char* encoded = mbc_encode_to_hex(key, (uint8_t[]){}, 0, false);
 	ASSERT_STR("", encoded);
 	free(encoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode_from_hex) {
 	size_t dec_size;
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// xor:  0x47
 	// swap: 3-4
-	uint8_t* decoded = mbc_decode_from_hex("08a5", &dec_size);
+	uint8_t* decoded = mbc_decode_from_hex(key, "08a5", &dec_size);
 	// 0000 1000 ^ 0100 0111 → swap 0100 1111 → 0101 0111
 	// 1010 0101 ^ 0100 0111 → swap 1110 0010 → 1110 0010
 	ASSERT_DATA(((uint8_t[]){0x57, 0xe2}), 2, decoded, dec_size);
 	free(decoded);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, mbc_decode_from_hex__empty) {
 	size_t dec_size;
-	ASSERT_TRUE(mbc_set_user_key((uint8_t[]){0x47}, 1));
+	mbc_token_t key = mbc_generate_token((uint8_t[]){0x47}, 1);
+	ASSERT_NOT_NULL(key);
 	// xor:  0x47
 	// swap: 3-4
-	uint8_t* decoded = mbc_decode_from_hex("", &dec_size);
+	uint8_t* decoded = mbc_decode_from_hex(key, "", &dec_size);
 	//ASSERT_NULL(decoded);  // TODO
 	ASSERT_EQUAL(0, dec_size);
 	free(decoded);
-	mbc_free();
+	mbc_free_token(key);
 }

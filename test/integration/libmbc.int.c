@@ -66,15 +66,15 @@ CTEST(libmbc, encode_decode__inplace) {
 	ks = 0; ds = 0;
 	random_test_data(&k, &d, &e, &ks, &ds, false, false);
 
-	mbc_set_user_key(k, ks);
-	mbc_encode_inplace(d, ds);
-	mbc_decode_inplace(d, ds);
+	mbc_token_t key = mbc_generate_token(k, ks);
+	mbc_encode_inplace(key, d, ds);
+	mbc_decode_inplace(key, d, ds);
 	ASSERT_DATA(e, ds, d, ds);
 
 	free(k);
 	free(d);
 	free(e);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, encode_decode) {
@@ -84,9 +84,9 @@ CTEST(libmbc, encode_decode) {
 	ks = 0; ds = 0;
 	random_test_data(&k, &d, &e, &ks, &ds, false, false);
 
-	mbc_set_user_key(k, ks);
-	de = mbc_encode(d, ds);
-	dd = mbc_decode(de, ds);
+	mbc_token_t key = mbc_generate_token(k, ks);
+	de = mbc_encode(key, d, ds);
+	dd = mbc_decode(key, de, ds);
 	ASSERT_DATA(e, ds, dd, ds);
 
 	free(k);
@@ -94,7 +94,7 @@ CTEST(libmbc, encode_decode) {
 	free(de);
 	free(dd);
 	free(e);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, encode_decode__to_from_hex__lower) {
@@ -105,9 +105,9 @@ CTEST(libmbc, encode_decode__to_from_hex__lower) {
 	ks = 0; ds = 0;
 	random_test_data(&k, &d, &e, &ks, &ds, false, false);
 
-	mbc_set_user_key(k, ks);
-	dex = mbc_encode_to_hex(d, ds, false);
-	dd = mbc_decode_from_hex(dex, &dds);
+	mbc_token_t key = mbc_generate_token(k, ks);
+	dex = mbc_encode_to_hex(key, d, ds, false);
+	dd = mbc_decode_from_hex(key, dex, &dds);
 	ASSERT_DATA(e, ds, dd, dds);
 
 	free(k);
@@ -115,7 +115,7 @@ CTEST(libmbc, encode_decode__to_from_hex__lower) {
 	free(dex);
 	free(dd);
 	free(e);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, encode_decode__to_from_hex__upper) {
@@ -126,9 +126,9 @@ CTEST(libmbc, encode_decode__to_from_hex__upper) {
 	ks = 0; ds = 0;
 	random_test_data(&k, &d, &e, &ks, &ds, false, false);
 
-	mbc_set_user_key(k, ks);
-	dex = mbc_encode_to_hex(d, ds, true);
-	dd = mbc_decode_from_hex(dex, &dds);
+	mbc_token_t key = mbc_generate_token(k, ks);
+	dex = mbc_encode_to_hex(key, d, ds, true);
+	dd = mbc_decode_from_hex(key, dex, &dds);
 	ASSERT_DATA(e, ds, dd, dds);
 
 	free(k);
@@ -136,7 +136,7 @@ CTEST(libmbc, encode_decode__to_from_hex__upper) {
 	free(dex);
 	free(dd);
 	free(e);
-	mbc_free();
+	mbc_free_token(key);
 }
 
 CTEST(libmbc, convert__raw_to_hex_to_raw__lower) {
