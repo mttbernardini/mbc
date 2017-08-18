@@ -10,17 +10,25 @@ target_include_directories(integration_tests PUBLIC "src" "test")
 
 target_link_libraries(integration_tests libmbc)
 
-configure_file("test/integration/mbc.int.sh" "mbc_random_test" COPYONLY)
-
 # Add mbc_ prefix to executables
 set_target_properties(unit_tests PROPERTIES OUTPUT_NAME mbc_unit_tests)
 set_target_properties(integration_tests PROPERTIES OUTPUT_NAME mbc_integration_tests)
 
-add_custom_target(
-	mbc_test
-	COMMAND ./mbc_unit_tests
-	COMMAND ./mbc_integration_tests
-	COMMAND ./mbc_random_test 512k 32k
-	DEPENDS mbc unit_tests integration_tests
-	COMMENT "Running test..."
-)
+
+if (UNIX)
+	configure_file("test/integration/mbc.int.sh" "mbc_random_test" COPYONLY)
+	add_custom_target(mbc_test
+		COMMAND ./mbc_unit_tests
+		COMMAND ./mbc_integration_tests
+		COMMAND ./mbc_random_test 512k 32k
+		DEPENDS mbc unit_tests integration_tests
+		COMMENT "Running test..."
+	)
+else()
+	add_custom_target(mbc_test
+		COMMAND ./mbc_unit_tests
+		COMMAND ./mbc_integration_tests
+		DEPENDS unit_tests integration_tests
+		COMMENT "Running test..."
+	)
+endif()

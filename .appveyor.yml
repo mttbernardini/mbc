@@ -1,7 +1,7 @@
 version: '{build}'
 clone_depth: 3
 init:
- - cmd: set PATH=%PATH:C:\Program Files\Git\usr\bin;=%;C:\MinGW\bin;
+ - cmd: set PATH=C:\MinGW\bin;%PATH:C:\Program Files\Git\usr\bin;=%;
 build_script:
  - cmd: |
     mkdir build && cd build
