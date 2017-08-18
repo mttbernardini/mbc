@@ -4,15 +4,20 @@
 [![appveyor][appveyor-img]][appveyor-link]
 [![codecov][codecov-img]][codecov-link]
 
-**THIS IS A WORK IN PROGRESS** *(check `developing` branch)*.
+**THIS IS A WORK IN PROGRESS**, backwards compatibility is **not** guaranteed *(check `developing` branch)*.
 
 This repository will provide a C library for the *mbc symmetric encryption algorithm*, plus a parametric CLI program for `stdio` usage.
 
-NB: This is a remake of the [mbencrypter][1] project, however the new algorithm is not compatible.
+This is a remake of the [mbencrypter][1] project, however the new algorithm is not compatible.
+
+## DISCLAIMER ##
+
+This project is not intended to be used in any production environment nor anywhere safety and privacy are a big concern. The efficacy of the algorithm is not proven (and probably won't be), therefore it **should not be used** for any crypthography purposes.
+
+The project is developed just for fun and educational purposes, and is provided "as is" **without warranty of any kind**.
+
 
 ## Installation ##
-
-### Unix systems (Linux, MacOS, etc) ###
 
 Clone the repository and enter the base directory:
 
@@ -25,9 +30,19 @@ Create a "build" directory and run `cmake` from there:
 	$ cd build
 	$ cmake ..
 
+
+### Unix systems (Linux, MacOS, CygWin, etc) ###
+
 Build & install using `make`:
 
 	$ sudo make install
+
+### MinGW ###
+
+Build & install using `mingw32-make` from an admin shell:
+
+	# mingw32-make install
+
 
 ## Algorithm Description ##
 
@@ -40,6 +55,31 @@ Build & install using `make`:
 - If the key is shorter than data, it will be cycled until the end of data.
 - If data is shorter than the key, it will be cycled until the end of the key.
 - Each byte of data is XORed with each byte of the key.
+
+## Testing ##
+
+All tests can be run using `make` (`mingw32-make` on MinGW):
+
+	$ make mbc_test
+
+Or selective tests can be run.
+
+Unit tests:
+
+	$ make unit_tests
+	$ ./mbc_unit_tests
+
+Integration tests:
+
+	$ make integration_tests
+	$ ./mbc_integration_tests
+
+Random test (only for Unix, requires `bash`):  
+*NB: `<data size>` and `<key size>` are mandatory and allow suffixes like `k`, `M`, `G` and so on (refer to `dd` documentation).*
+
+	$ make random_test
+	$ ./mbc_random_test <data size> <key size>
+
 
 ---
 © Matteo Bernardini & Marco Bonelli, 2017
