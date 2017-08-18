@@ -20,6 +20,7 @@ add_custom_target(
 	mbc_test
 	COMMAND ./mbc_unit_tests
 	COMMAND ./mbc_integration_tests
+	COMMAND ./mbc_random_test 512k 32k
 	DEPENDS mbc unit_tests integration_tests
 	COMMENT "Running test..."
 )
