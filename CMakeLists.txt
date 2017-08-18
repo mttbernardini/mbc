@@ -20,8 +20,10 @@ set(CMAKE_C_FLAGS_COVERAGE "--coverage")
 # Add library
 add_library(libmbc SHARED "src/libmbc.c")
 target_include_directories(libmbc PUBLIC "src/")
-set_target_properties(libmbc PROPERTIES PREFIX "") # avoids "liblibmbc.so", but maybe this is not the best way to do it.
-set_target_properties(libmbc PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE) # for MSVC
+set_target_properties(libmbc PROPERTIES
+	OUTPUT_NAME "mbc" # avoids "liblibmbc" name
+	WINDOWS_EXPORT_ALL_SYMBOLS TRUE # for MSVC
+)
 
 # Add executable
 add_executable(mbc "src/mbc.c")
@@ -38,10 +40,5 @@ install(TARGETS libmbc
 install(TARGETS mbc DESTINATION bin)
 install(FILES "src/libmbc.h" DESTINATION include)
 
-# Testing
-add_custom_target(mbc_test
-	COMMAND ${CMAKE_SOURCE_DIR}/test/test.sh 512k 32k
-	DEPENDS mbc
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test
-	COMMENT "Running Test"
-)
+# Include cmake file for tests
+include("test/CMakeLists.txt")

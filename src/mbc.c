@@ -9,7 +9,7 @@
 #define MBC_VERSION "0.1"
 
 static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
-static const char* USAGE_INFO = "[-xvh] (-e | -d) -k <key>";
+static const char* USAGE_INFO = "[-xuvh] (-e | -d) -k <key>";
 static const char* SHORT_DESC =
 	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
 	"a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.\n"
@@ -23,6 +23,7 @@ static const char* HELP_MSG =
 	"           data as an hexadecimal string to stdout. When decoding takes\n"
 	"           an hexadecimal string representing encoded data from stdin\n"
 	"           and outputs raw decoded data to stdout.\n"
+	" -u        When using -x, output uppercase characters.\n"
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
@@ -35,18 +36,19 @@ void print_version(void);
 void print_usage(void);
 void print_help(void);
 void print_invalid(void);
-void core(bool enc_mode, bool hex_mode, char* user_key);
+void core(bool, bool, bool, char*);
 
 int main(int argc, char* argv[]) {
 	char opt, *key;
-	bool enc, hex, mode_set;
+	bool enc, hex, upper, mode_set;
 
 	CLI_NAME = argv[0];
 	key      = NULL;
 	hex      = false;
+	upper    = false;
 	mode_set = false;
 
-	while ((opt = getopt(argc, argv, "edk:xvh")) != -1) {
+	while ((opt = getopt(argc, argv, "edk:xuvh")) != -1) {
 		switch (opt) {
 			case 'e':
 				if (!mode_set) {
@@ -76,6 +78,10 @@ int main(int argc, char* argv[]) {
 				hex = true;
 				break;
 
+			case 'u':
+				upper = true;
+				break;
+
 			case 'h':
 				print_help();
 				return 0;
@@ -95,7 +101,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	core(enc, hex, key);
+	core(enc, hex, upper, key);
 
 	return 0;
 }
@@ -120,7 +126,7 @@ void print_invalid(void) {
 	print_usage();
 }
 
-void core(bool enc_mode, bool hex_mode, char* user_key) {
+void core(bool enc_mode, bool hex_mode, bool uppercase, char* user_key) {
 	uint8_t *buffer_in_raw, *buffer_out_raw;
 	char *buffer_in_hex, *buffer_out_hex;
 	size_t user_key_size, bytes_read, bytes_to_write;
@@ -137,7 +143,7 @@ void core(bool enc_mode, bool hex_mode, char* user_key) {
 				exit(1);
 
 			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, false);
+				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, uppercase);
 				if (buffer_out_hex == NULL) {
 					free(buffer_in_raw);
 					exit(1);

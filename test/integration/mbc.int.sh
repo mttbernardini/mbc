@@ -3,7 +3,7 @@
 test_mbc() {
 	printf "[0/4] Checking for mbc executable... "
 
-	if [ -x ../build/mbc ]; then
+	if [ -x ./mbc ]; then
 		printf "OK.\n"
 	else
 		printf "ERR!\n"
