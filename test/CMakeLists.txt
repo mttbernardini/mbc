@@ -16,12 +16,18 @@ set_target_properties(integration_tests PROPERTIES OUTPUT_NAME mbc_integration_t
 
 
 if (UNIX)
-	configure_file("test/integration/mbc.int.sh" "mbc_random_test" COPYONLY)
+	add_custom_command(OUTPUT mbc_random_test
+		COMMAND ${CMAKE_COMMAND} -E copy
+			$(CMAKE_SOURCE_DIR)/test/integration/mbc.int.sh
+			mbc_random_test
+	)
+	add_custom_target(random_test DEPENDS mbc mbc_random_test)
+
 	add_custom_target(mbc_test
 		COMMAND ./mbc_unit_tests
 		COMMAND ./mbc_integration_tests
 		COMMAND ./mbc_random_test 512k 32k
-		DEPENDS mbc unit_tests integration_tests
+		DEPENDS unit_tests integration_tests random_test
 		COMMENT "Running test..."
 	)
 else()
