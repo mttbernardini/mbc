@@ -36,11 +36,10 @@ static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with
 
 static char* CLI_NAME;
 
-void print_invalid(void);
 void core(bool, bool, bool, char*);
 
 int main(int argc, char* argv[]) {
-	enum {NONE, ENCODE, DECODE} mode;
+	enum {NONE, ENCODE, DECODE, INVALID} mode;
 	char opt, *key;
 	bool hex, upper;
 
@@ -53,19 +52,11 @@ int main(int argc, char* argv[]) {
 	while ((opt = getopt(argc, argv, "edk:xuvh")) != -1) {
 		switch (opt) {
 			case 'e':
-				if (mode != NONE) {
-					print_invalid();
-					return 1;
-				}
-				mode = ENCODE;
+				mode = (mode == NONE ? ENCODE : INVALID);
 				break;
 
 			case 'd':
-				if (mode != NONE) {
-					print_invalid();
-					return 1;
-				}
-				mode = DECODE;
+				mode = (mode == NONE ? DECODE : INVALID);
 				break;
 
 			case 'k':
@@ -94,19 +85,15 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if (mode == NONE || key == NULL) {
-		print_invalid();
+	if (mode == NONE || mode == INVALID || key == NULL) {
+		fprintf(stderr, "%s: please set a valid mode (-d OR -e) and a key (-k).\n", CLI_NAME);
+		print_usage();
 		return 1;
 	}
 
 	core(mode == ENCODE, hex, upper, key);
 
 	return 0;
-}
-
-void print_invalid(void) {
-	fprintf(stderr, "Please set a valid mode (-d OR -e) and a key (-k).\n");
-	print_usage();
 }
 
 void core(bool enc_mode, bool hex_mode, bool uppercase, char* user_key) {
