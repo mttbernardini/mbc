@@ -40,7 +40,6 @@ CTEST(libmbc, mbc_free) {
 	ASSERT_EQUAL(0, user_key_size);
 	ASSERT_EQUAL(0, oct_key_size);
 	ASSERT_NULL(user_key);
-	ASSERT_NULL(oct_key);
 }
 
 

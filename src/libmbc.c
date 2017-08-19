@@ -11,7 +11,7 @@
 
 static uint8_t* user_key;
 static size_t   user_key_size;
-static uint8_t* oct_key;
+static uint8_t  oct_key[8];
 static size_t   oct_key_size;
 
 static const char HEXMAP_UPPER[256][2] = {
@@ -64,22 +64,16 @@ static const uint8_t HEXMAP_REVERSE[128] = {
 };
 
 /**
- * Generates the octal key (to be used in misc phase) from a user key passed as parameter.
- * @ret  Generated octal key, `NULL` if the key cannot be `malloc`ated.
- * @post `*okey_size_ptr` now contains the size of the `oct_key` generated.
+ * Generates the octal key (to be used in swap phase) from a user key passed as parameter.
+ * @post `okey` contains the swapping key;
+ *       `*okey_size_ptr` contains the size of the actual generated key.
  */
-static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_size_ptr) {
-	uint8_t l_bit, r_bit, dummy_temp, current, next, *okey;
+static void make_oct_key(uint8_t okey[8], size_t* okey_size_ptr, const uint8_t* key, size_t key_size) {
+	uint8_t l_bit, r_bit, dummy_temp, current, next;
 	uint8_t swap_map[8], dummy_byte[8] = {0,1,2,3,4,5,6,7};
 	bool to_check[8] = {1,1,1,1,1,1,1,1};
 	register size_t i;
-	size_t okey_size;
-
-	okey = malloc(8);
-	if (okey == NULL)
-		return NULL;
-
-	okey_size = 0;
+	size_t okey_size = 0;
 
 	for (i = 0; i < key_size; i++) {
 		l_bit = (key[i] >> 4) & 0x07;
@@ -114,8 +108,6 @@ static uint8_t* make_oct_key(const uint8_t* key, size_t key_size, size_t* okey_s
 	}
 
 	*okey_size_ptr = okey_size;
-
-	return okey;
 }
 
 
@@ -130,9 +122,8 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size) {
 
 	memcpy(user_key, key, key_size);
 	user_key_size = key_size;
-	oct_key       = make_oct_key(user_key, user_key_size, &oct_key_size);
-	if (oct_key == NULL)
-		return false;
+
+	make_oct_key(oct_key, &oct_key_size, key, key_size);
 
 	return true;
 }
@@ -141,8 +132,6 @@ void mbc_free(void) {
 	free(user_key);
 	user_key = NULL;
 	user_key_size = 0;
-	free(oct_key);
-	oct_key = NULL;
 	oct_key_size = 0;
 }
 
