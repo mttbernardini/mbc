@@ -39,35 +39,32 @@ void print_invalid(void);
 void core(bool, bool, bool, char*);
 
 int main(int argc, char* argv[]) {
+	enum {NONE, ENCODE, DECODE} mode;
 	char opt, *key;
-	bool enc, hex, upper, mode_set;
+	bool hex, upper;
 
 	CLI_NAME = argv[0];
 	key      = NULL;
 	hex      = false;
 	upper    = false;
-	mode_set = false;
+	mode     = NONE;
 
 	while ((opt = getopt(argc, argv, "edk:xuvh")) != -1) {
 		switch (opt) {
 			case 'e':
-				if (!mode_set) {
-					enc = true;
-					mode_set = true;
-				} else {
+				if (mode != NONE) {
 					print_invalid();
 					return 1;
 				}
+				mode = ENCODE;
 				break;
 
 			case 'd':
-				if (!mode_set) {
-					enc = false;
-					mode_set = true;
-				} else {
+				if (mode != NONE) {
 					print_invalid();
 					return 1;
 				}
+				mode = DECODE;
 				break;
 
 			case 'k':
@@ -96,12 +93,12 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if (!mode_set || key == NULL) {
+	if (mode == NONE || key == NULL) {
 		print_invalid();
 		return 1;
 	}
 
-	core(enc, hex, upper, key);
+	core(mode == ENCODE, hex, upper, key);
 
 	return 0;
 }
