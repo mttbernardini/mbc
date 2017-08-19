@@ -6,6 +6,10 @@
 #include <string.h>
 #include <libmbc.h>
 
+#define print_version()  fprintf(stderr, VERSION_INFO)
+#define print_usage()    fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO)
+#define print_help()     print_version(); fprintf(stderr, "\n%s\n", SHORT_DESC); print_usage(); fprintf(stderr, "\n%s", HELP_MSG)
+
 #define MBC_VERSION "0.1"
 
 static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
@@ -32,9 +36,6 @@ static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with
 
 static char* CLI_NAME;
 
-void print_version(void);
-void print_usage(void);
-void print_help(void);
 void print_invalid(void);
 void core(bool, bool, bool, char*);
 
@@ -101,21 +102,6 @@ int main(int argc, char* argv[]) {
 	core(mode == ENCODE, hex, upper, key);
 
 	return 0;
-}
-
-void print_version(void) {
-	fprintf(stderr, "%s", VERSION_INFO);
-}
-
-void print_usage(void) {
-	fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO);
-}
-
-void print_help(void) {
-	print_version();
-	fprintf(stderr, "\n%s\n", SHORT_DESC);
-	print_usage();
-	fprintf(stderr, "\n%s", HELP_MSG);
 }
 
 void print_invalid(void) {
