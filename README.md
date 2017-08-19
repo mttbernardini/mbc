@@ -12,7 +12,7 @@ This is a remake of the [mbencrypter][1] project, however the new algorithm is n
 
 ## DISCLAIMER ##
 
-This project is not intended to be used in any production environment nor anywhere safety and privacy are a big concern. The efficacy of the algorithm is not proven (and probably won't be), therefore it **should not be used** for any crypthography purposes.
+This project is not intended to be used in any production environment nor anywhere safety and privacy are a big concern. The efficacy of the algorithm is not proven (and probably won't be), therefore it **should not be used** for any cryptography purposes.
 
 The project is developed just for fun and educational purposes, and is provided "as is" **without warranty of any kind**.
 
