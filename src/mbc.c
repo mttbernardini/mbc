@@ -14,7 +14,7 @@
 #define print_help()     fprintf(stderr, "%s\n%s\n"USAGE_FORMAT"\n%s", VERSION_INFO, SHORT_DESC, CLI_NAME, USAGE_INFO, HELP_MSG)
 
 static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
-static const char* USAGE_INFO = "[-xuvh] (-e | -d) -k <key>";
+static const char* USAGE_INFO = "[-xunvh] (-e | -d) -k <key>";
 static const char* SHORT_DESC =
 	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
 	"a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.\n"
@@ -28,7 +28,9 @@ static const char* HELP_MSG =
 	"           data as an hexadecimal string to stdout. When decoding takes\n"
 	"           an hexadecimal string representing encoded data from stdin\n"
 	"           and outputs raw decoded data to stdout.\n"
-	" -u        When using -x, output uppercase characters.\n"
+	" -u        When encoding and using -x, output uppercase characters.\n"
+	" -n        When encoding and using -x, do not output the trailing newline.\n"
+	"           NB: the presence of the newline does not affect decoding.\n"
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
@@ -37,21 +39,22 @@ static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with
 
 static char* CLI_NAME;
 
-void hex_codec(bool, bool);
+void hex_codec(bool, bool, bool);
 void raw_codec(bool);
 
 int main(int argc, char* argv[]) {
 	enum {NONE, ENCODE, DECODE, INVALID} mode;
 	char opt, *key;
-	bool hex, upper;
+	bool hex, upper, trail_nl;
 
 	CLI_NAME = argv[0];
 	key      = NULL;
 	hex      = false;
 	upper    = false;
+	trail_nl = true;
 	mode     = NONE;
 
-	while ((opt = getopt(argc, argv, "edk:xuvh")) != -1) {
+	while ((opt = getopt(argc, argv, "edk:xunvh")) != -1) {
 		switch (opt) {
 			case 'e':
 				mode = (mode == NONE ? ENCODE : INVALID);
@@ -71,6 +74,10 @@ int main(int argc, char* argv[]) {
 
 			case 'u':
 				upper = true;
+				break;
+
+			case 'n':
+				trail_nl = false;
 				break;
 
 			case 'h':
@@ -97,14 +104,14 @@ int main(int argc, char* argv[]) {
 	atexit(mbc_free);
 
 	if (hex)
-		hex_codec(mode == ENCODE, upper);
+		hex_codec(mode == ENCODE, upper, trail_nl);
 	else
 		raw_codec(mode == ENCODE);
 
 	return 0;
 }
 
-void hex_codec(bool enc_mode, bool uppercase) {
+void hex_codec(bool enc_mode, bool uppercase, bool trailing_newline) {
 	uint8_t *raw_buffer_in, *raw_buffer_out;
 	char    *hex_buffer_in, *hex_buffer_out;
 	size_t  buffer_size_in, buffer_size_out;
@@ -125,6 +132,9 @@ void hex_codec(bool enc_mode, bool uppercase) {
 			fwrite(hex_buffer_out, 1, buffer_size_in * 2, stdout);
 			free(hex_buffer_out);
 		}
+
+		if (trailing_newline)
+			fputs("\n", stdout);
 
 		free(raw_buffer_in);
 	} else {

@@ -50,7 +50,7 @@ test_mbc() {
 	fi
 
 	# DECRYPT/ENCRYPT "dummy_hex" into "dummy_hex_out"
-	./mbc -dxk "$test_key" < dummy_hex | ./mbc -exk "$test_key" > dummy_hex_out
+	./mbc -dxk "$test_key" < dummy_hex | ./mbc -exnk "$test_key" > dummy_hex_out
 	if [ $? -eq 0 ]; then
 		printf "DONE.\n"
 	else
