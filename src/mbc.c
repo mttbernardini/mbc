@@ -6,11 +6,12 @@
 #include <string.h>
 #include <libmbc.h>
 
-#define print_version()  fprintf(stderr, VERSION_INFO)
-#define print_usage()    fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO)
-#define print_help()     print_version(); fprintf(stderr, "\n%s\n", SHORT_DESC); print_usage(); fprintf(stderr, "\n%s", HELP_MSG)
+#define USAGE_FORMAT "Usage: %s %s\n"
+#define MBC_VERSION  "0.1"
 
-#define MBC_VERSION "0.1"
+#define print_version()  fputs(VERSION_INFO, stderr)
+#define print_usage()    fprintf(stderr, USAGE_FORMAT, CLI_NAME, USAGE_INFO)
+#define print_help()     fprintf(stderr, "%s\n%s\n"USAGE_FORMAT"\n%s", VERSION_INFO, SHORT_DESC, CLI_NAME, USAGE_INFO, HELP_MSG)
 
 static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
 static const char* USAGE_INFO = "[-xuvh] (-e | -d) -k <key>";
