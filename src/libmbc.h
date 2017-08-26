@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 /**
- * Sets the value of global `user_key` and calculates global `oct_key`.
+ * Sets the value of global `xor_key` and calculates global `swap_key`.
  * @ret `true` on success, `false` otherwise.
  * @pre `key` is an array of bytes; `key_size` > 0
  */
@@ -14,7 +14,7 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size);
 
 /**
  * Frees any dynamically allocated variables (basically the global keys).
- * @post `user_key` and `oct_key` are NULL pointers.
+ * @post `xor_key` is a NULL pointer; key sizes are zeroed.
  */
 void mbc_free(void);
 
