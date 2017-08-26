@@ -6,7 +6,7 @@
  - `char*` is used for NUL-terminated strings only (instead of `uint8_t*`).
  - `stdint.h` types are preferred.
 
-### `make_oct_key` rationale:
+### `make_swap_key` rationale:
 
 The `dummy_byte` starts as `{0,1,2,3,4,5,6,7}`, then for every `i` from `0` to `key_len-1`:
 
@@ -33,4 +33,4 @@ The `dummy_byte` starts as `{0,1,2,3,4,5,6,7}`, then for every `i` from `0` to `
 
  4. At the end of the cycle, `dummy_byte` contains the shuffled bits, and each of them is identified by its value.
  5. The following cycle builds up a swap map from the `dummy_byte`: the bit in position `i` will be in position `swap_map[i]` after the swap part of the algorithm is executed.
- 6. The final `for` cycle scans `swap_map` to extract the shortest array of moves (which will be the real `oct_key`) to perform to obtain the same result.
+ 6. The final `for` cycle scans `swap_map` to extract the shortest array of moves (which will be the real `swap_key`) to perform to obtain the same result.

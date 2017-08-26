@@ -48,8 +48,8 @@ Build & install using `mingw32-make` from an admin shell:
 
 ### 1. Bit-Swap encoding, by MeBeiM ###
 - The key is converted into a swap map (see [notes.md][2] for the detailed mechanism).
-- The swap map is reduced to generate the `oct_key`, each byte indicating the position of two bits to swap in each byte of data.
-- Each byte of data is processed applying the swaps indicated by the `oct_key`.
+- The swap map is reduced to generate the `swap_key`, each byte indicating the position of two bits to swap in each byte of data.
+- Each byte of data is processed applying the swaps indicated by the `swap_key`.
 
 ### 2. Per-Byte XOR encoding ###
 - If the key is shorter than data, it will be cycled until the end of data.
