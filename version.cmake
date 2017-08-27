@@ -4,7 +4,7 @@ set(GIT_DESCRIBE_EXIT 1)
 
 if (GIT_FOUND)
 	execute_process(
-		COMMAND ${GIT_EXECUTABLE} describe --always --long
+		COMMAND ${GIT_EXECUTABLE} describe --always --long --first-parent
 		RESULT_VARIABLE GIT_DESCRIBE_EXIT
 		OUTPUT_VARIABLE MBC_VERSION
 		OUTPUT_STRIP_TRAILING_WHITESPACE
