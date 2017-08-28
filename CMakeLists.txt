@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.8) # NB: 3.4 is needed for WINDOWS_EXPORT_ALL_SYMBOLS to work
 project("MBC" LANGUAGES C)
+#set(MBC_VERSION "")
 
 # Prevent in-source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -12,7 +13,9 @@ cmake_policy(SET CMP0042 OLD) # we don't care about this policy. Set to suppress
 file(WRITE ${CMAKE_BINARY_DIR}/version.c.in "const char* MBC_VERSION = \"@MBC_VERSION@\";\n")
 add_custom_command(OUTPUT version.c DEPENDS version)
 add_custom_target(version
-	COMMAND ${CMAKE_COMMAND} -D ROOT=${CMAKE_SOURCE_DIR} -P ${CMAKE_SOURCE_DIR}/cmake/version.cmake
+	COMMAND ${CMAKE_COMMAND}
+		-D HARD_VERSION=${MBC_VERSION}
+		-P ${CMAKE_SOURCE_DIR}/cmake/version.cmake
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
