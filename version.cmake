@@ -19,7 +19,32 @@ if(NOT GIT_DESCRIBE_EXIT EQUAL 0)
 	endif()
 endif()
 
-STRING(REGEX REPLACE "^v([0-9]+)\\.([0-9]+)-([0-9]+)-g[a-f0-9]+$" "\\1.\\2.\\3" MBC_VERSION "${MBC_VERSION}")
-STRING(REGEX REPLACE "^([a-f0-9]+)$" "#\\1" MBC_VERSION "${MBC_VERSION}")
+
+# Version format conventions
+STRING(REGEX REPLACE  # master standard release
+	"^v([0-9]+)\\.([0-9]+)-([0-9]+)-g[a-f0-9]+$"
+	"\\1.\\2.\\3"
+	MBC_VERSION "${MBC_VERSION}"
+)
+STRING(REGEX REPLACE  # master variant release
+	"^v([0-9]+)\\.([0-9]+)-([a-zA-Z0-9]+)-([0-9]+)-g[a-f0-9]+$"
+	"\\1.\\2.\\4-\\3"
+	MBC_VERSION "${MBC_VERSION}"
+)
+STRING(REGEX REPLACE  # master release fallback (no rev. number)
+	"^v([0-9]+)\\.([0-9]+)$"
+	"\\1.\\2"
+	MBC_VERSION "${MBC_VERSION}"
+)
+STRING(REGEX REPLACE  # master variant release fallback (no rev. number)
+	"^v([0-9]+)\\.([0-9]+)-([a-zA-Z0-9]+)$"
+	"\\1.\\2-\\3"
+	MBC_VERSION "${MBC_VERSION}"
+)
+STRING(REGEX REPLACE  # development release (commit hash based)
+	"^([a-f0-9]+)$"
+	"git#\\1"
+	MBC_VERSION "${MBC_VERSION}"
+)
 
 configure_file(version.c.in version.c ESCAPE_QUOTES @ONLY)
