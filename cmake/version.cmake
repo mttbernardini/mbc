@@ -48,4 +48,5 @@ STRING(REGEX REPLACE  # development release (commit hash based)
 	MBC_VERSION "${MBC_VERSION}"
 )
 
+message("-- MBC version: ${MBC_VERSION}")
 configure_file(version.c.in version.c ESCAPE_QUOTES @ONLY)
