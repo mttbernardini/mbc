@@ -38,4 +38,12 @@ if(MBC_VERSION STREQUAL "")
 endif()
 
 message("-- MBC version: ${MBC_VERSION}")
-configure_file(version.c.in version.c ESCAPE_QUOTES @ONLY)
+
+if(NOT EXISTS version.c)
+	file(WRITE version.c "const char* MBC_VERSION = \"${MBC_VERSION}\";\n")
+else()
+	file(STRINGS version.c SOURCE_LINE LIMIT_COUNT 1)
+	if(NOT SOURCE_LINE MATCHES "const char\\* MBC_VERSION = \"${MBC_VERSION}\"")
+		file(WRITE version.c "const char* MBC_VERSION = \"${MBC_VERSION}\";\n")
+	endif()
+endif()

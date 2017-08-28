@@ -10,7 +10,6 @@ endif()
 cmake_policy(SET CMP0042 OLD) # we don't care about this policy. Set to suppress warning on MacOS
 
 # Versioning
-file(WRITE ${CMAKE_BINARY_DIR}/version.c.in "const char* MBC_VERSION = \"@MBC_VERSION@\";\n")
 add_custom_command(OUTPUT version.c DEPENDS version)
 add_custom_target(version
 	COMMAND ${CMAKE_COMMAND}
