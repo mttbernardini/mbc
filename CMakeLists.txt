@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.8) # NB: 3.4 is needed for WINDOWS_EXPORT_ALL_SYMBOLS to work
 project("MBC" LANGUAGES C)
+#set(MBC_VERSION "")
 
 # Prevent in-source build
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -8,9 +9,14 @@ endif()
 
 cmake_policy(SET CMP0042 OLD) # we don't care about this policy. Set to suppress warning on MacOS
 
-# Version number (not needed for now)
-#set(MBC_VERSION_MAJOR 0)
-#set(MBC_VERSION_MINOR 1)
+# Versioning
+add_custom_command(OUTPUT version.c DEPENDS version)
+add_custom_target(version
+	COMMAND ${CMAKE_COMMAND}
+		-D HARD_VERSION=${MBC_VERSION}
+		-P ${CMAKE_SOURCE_DIR}/cmake/version.cmake
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 # Compiler settings
 set_property(GLOBAL PROPERTY C_STANDARD 99)
@@ -26,7 +32,7 @@ set_target_properties(libmbc PROPERTIES
 )
 
 # Add executable
-add_executable(mbc "src/mbc.c")
+add_executable(mbc "src/mbc.c" "version.c")
 
 # Linking
 target_link_libraries(mbc libmbc)

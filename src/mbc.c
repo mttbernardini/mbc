@@ -6,14 +6,15 @@
 #include <string.h>
 #include <libmbc.h>
 
-#define USAGE_FORMAT "Usage: %s %s\n"
-#define MBC_VERSION  "0.1"
+#define USAGE_FORMAT   "Usage: %s %s\n"
+#define VERSION_FORMAT "mbc %s\n%s"
 
-#define print_version()  fputs(VERSION_INFO, stderr)
+#define print_version()  fprintf(stderr, VERSION_FORMAT, MBC_VERSION, VERSION_INFO)
 #define print_usage()    fprintf(stderr, USAGE_FORMAT, CLI_NAME, USAGE_INFO)
-#define print_help()     fprintf(stderr, "%s\n%s\n"USAGE_FORMAT"\n%s", VERSION_INFO, SHORT_DESC, CLI_NAME, USAGE_INFO, HELP_MSG)
+#define print_help()     fprintf(stderr, VERSION_FORMAT"\n%s\n"USAGE_FORMAT"\n%s", MBC_VERSION, VERSION_INFO, SHORT_DESC, CLI_NAME, USAGE_INFO, HELP_MSG)
 
-static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
+extern const char* MBC_VERSION;
+static const char* VERSION_INFO = "Copyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
 static const char* USAGE_INFO = "[-xunvh] (-e | -d) -k <key>";
 static const char* SHORT_DESC =
 	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
