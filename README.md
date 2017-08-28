@@ -49,7 +49,7 @@ Build & install using `mingw32-make` from an elevated command prompt:
 
 ## Testing ##
 
-All tests can be run using `make` (or `mingw32-make` on MinGW):
+All tests can be run using `make` (or `mingw32-make` on Windows):
 
 	~/mbc/build$ make mbc_test
 
