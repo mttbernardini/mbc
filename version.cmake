@@ -1,6 +1,7 @@
 find_package(Git)
 
 set(GIT_DESCRIBE_EXIT 1)
+set(MBC_VERSION "")
 
 if (GIT_FOUND)
 	execute_process(
@@ -11,12 +12,12 @@ if (GIT_FOUND)
 	)
 endif()
 
-if(NOT GIT_DESCRIBE_EXIT EQUAL 0)
-	if (EXISTS ${ROOT}/VERSION)
-		file(STRINGS ${ROOT}/VERSION MBC_VERSION LIMIT_COUNT 1)
-	else()
-		set(MBC_VERSION "(unknown version)")
-	endif()
+if((NOT GIT_DESCRIBE_EXIT EQUAL 0) AND EXISTS ${ROOT}/VERSION)
+	file(STRINGS ${ROOT}/VERSION MBC_VERSION LIMIT_COUNT 1)
+endif()
+
+if(MBC_VERSION STREQUAL "")
+	set(MBC_VERSION "(unknown version)")
 endif()
 
 
@@ -43,7 +44,7 @@ STRING(REGEX REPLACE  # master variant release fallback (no rev. number)
 )
 STRING(REGEX REPLACE  # development release (commit hash based)
 	"^([a-f0-9]+)$"
-	"git#\\1"
+	"#git-\\1"
 	MBC_VERSION "${MBC_VERSION}"
 )
 
