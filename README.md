@@ -26,7 +26,7 @@ Clone this repo:
 	$ git clone https://github.com/mttbernardini/mbc.git
 	$ cd mbc
 
-Or just download one of the available [relaseses][2].
+Or just download one of the available [releases][2].
 
 
 ## Building and installation ##
