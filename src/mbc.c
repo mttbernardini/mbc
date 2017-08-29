@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2017 Matteo Bernardini
+ * Copyright (c) 2017 Marco Bonelli
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -6,10 +23,16 @@
 #include <string.h>
 #include <libmbc.h>
 
-#define MBC_VERSION "0.1"
+#define USAGE_FORMAT   "Usage: %s %s\n"
+#define VERSION_FORMAT "mbc %s\n%s"
 
-static const char* VERSION_INFO = "mbc " MBC_VERSION "\nCopyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
-static const char* USAGE_INFO = "[-xuvh] (-e | -d) -k <key>";
+#define print_version()  fprintf(stderr, VERSION_FORMAT, MBC_VERSION, VERSION_INFO)
+#define print_usage()    fprintf(stderr, USAGE_FORMAT, CLI_NAME, USAGE_INFO)
+#define print_help()     fprintf(stderr, VERSION_FORMAT"\n%s\n"USAGE_FORMAT"\n%s", MBC_VERSION, VERSION_INFO, SHORT_DESC, CLI_NAME, USAGE_INFO, HELP_MSG)
+
+extern const char* MBC_VERSION;
+static const char* VERSION_INFO = "Copyright (c) 2017 Matteo Bernardini & Marco Bonelli.\n";
+static const char* USAGE_INFO = "[-xunvh] (-e | -d) -k <key>";
 static const char* SHORT_DESC =
 	"mbc is a quick tool for encoding/decoding data via stdio using libmbc,\n"
 	"a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.\n"
@@ -23,7 +46,9 @@ static const char* HELP_MSG =
 	"           data as an hexadecimal string to stdout. When decoding takes\n"
 	"           an hexadecimal string representing encoded data from stdin\n"
 	"           and outputs raw decoded data to stdout.\n"
-	" -u        When using -x, output uppercase characters.\n"
+	" -u        When encoding and using -x, output uppercase characters.\n"
+	" -n        When encoding and using -x, do not output the trailing newline.\n"
+	"           NB: the presence of the newline does not affect decoding.\n"
 	" -v        Shows program version and exits.\n"
 	" -h        Shows this help message and exits.\n";
 
@@ -32,42 +57,29 @@ static const size_t HEX_CHUNK_SIZE = 64 << 20;  //       but how do we deal with
 
 static char* CLI_NAME;
 
-void print_version(void);
-void print_usage(void);
-void print_help(void);
-void print_invalid(void);
-void core(bool, bool, bool, char*);
+void hex_codec(bool, bool, bool);
+void raw_codec(bool);
 
 int main(int argc, char* argv[]) {
+	enum {NONE, ENCODE, DECODE, INVALID} mode;
 	char opt, *key;
-	bool enc, hex, upper, mode_set;
+	bool hex, upper, trail_nl;
 
 	CLI_NAME = argv[0];
 	key      = NULL;
 	hex      = false;
 	upper    = false;
-	mode_set = false;
+	trail_nl = true;
+	mode     = NONE;
 
-	while ((opt = getopt(argc, argv, "edk:xuvh")) != -1) {
+	while ((opt = getopt(argc, argv, "edk:xunvh")) != -1) {
 		switch (opt) {
 			case 'e':
-				if (!mode_set) {
-					enc = true;
-					mode_set = true;
-				} else {
-					print_invalid();
-					return 1;
-				}
+				mode = (mode == NONE ? ENCODE : INVALID);
 				break;
 
 			case 'd':
-				if (!mode_set) {
-					enc = false;
-					mode_set = true;
-				} else {
-					print_invalid();
-					return 1;
-				}
+				mode = (mode == NONE ? DECODE : INVALID);
 				break;
 
 			case 'k':
@@ -80,6 +92,10 @@ int main(int argc, char* argv[]) {
 
 			case 'u':
 				upper = true;
+				break;
+
+			case 'n':
+				trail_nl = false;
 				break;
 
 			case 'h':
@@ -96,102 +112,86 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	if (!mode_set || key == NULL) {
-		print_invalid();
+	if (mode == NONE || mode == INVALID || key == NULL) {
+		fprintf(stderr, "%s: please set a valid mode (-d OR -e) and a key (-k).\n", CLI_NAME);
+		print_usage();
 		return 1;
 	}
 
-	core(enc, hex, upper, key);
+	mbc_set_user_key((uint8_t*) key, strlen(key));
+	atexit(mbc_free);
+
+	if (hex)
+		hex_codec(mode == ENCODE, upper, trail_nl);
+	else
+		raw_codec(mode == ENCODE);
 
 	return 0;
 }
 
-void print_version(void) {
-	fprintf(stderr, "%s", VERSION_INFO);
-}
+void hex_codec(bool enc_mode, bool uppercase, bool trailing_newline) {
+	uint8_t *raw_buffer_in, *raw_buffer_out;
+	char    *hex_buffer_in, *hex_buffer_out;
+	size_t  buffer_size_in, buffer_size_out;
 
-void print_usage(void) {
-	fprintf(stderr, "Usage: %s %s\n", CLI_NAME, USAGE_INFO);
-}
+	if (enc_mode) {
 
-void print_help(void) {
-	print_version();
-	fprintf(stderr, "\n%s\n", SHORT_DESC);
-	print_usage();
-	fprintf(stderr, "\n%s", HELP_MSG);
-}
-
-void print_invalid(void) {
-	fprintf(stderr, "Please set a valid mode (-d OR -e) and a key (-k).\n");
-	print_usage();
-}
-
-void core(bool enc_mode, bool hex_mode, bool uppercase, char* user_key) {
-	uint8_t *buffer_in_raw, *buffer_out_raw;
-	char *buffer_in_hex, *buffer_out_hex;
-	size_t user_key_size, bytes_read, bytes_to_write;
-
-	user_key_size = strlen(user_key);
-	mbc_set_user_key((uint8_t*) user_key, user_key_size);
-	atexit(mbc_free);
-
-	if (hex_mode) {
-		if (enc_mode) {
-
-			buffer_in_raw = malloc(RAW_CHUNK_SIZE);
-			if (buffer_in_raw == NULL)
-				exit(1);
-
-			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				buffer_out_hex = mbc_encode_to_hex(buffer_in_raw, bytes_read, uppercase);
-				if (buffer_out_hex == NULL) {
-					free(buffer_in_raw);
-					exit(1);
-				}
-
-				fwrite(buffer_out_hex, 1, bytes_read * 2, stdout);
-				free(buffer_out_hex);
-			}
-
-			free(buffer_in_raw);
-		} else {
-
-			buffer_in_hex = malloc(HEX_CHUNK_SIZE + 1);
-			if (buffer_in_hex == NULL)
-				exit(1);
-
-			while ((bytes_read = fread(buffer_in_hex, 1, HEX_CHUNK_SIZE, stdin))) {
-				buffer_in_hex[bytes_read] = '\0';
-				buffer_out_raw = mbc_decode_from_hex(buffer_in_hex, &bytes_to_write);
-				if (buffer_out_raw == NULL) {
-					free(buffer_in_hex);
-					exit(1);
-				}
-
-				fwrite(buffer_out_raw, 1, bytes_to_write, stdout);
-				free(buffer_out_raw);
-			}
-
-			free(buffer_in_hex);
-		}
-	} else {
-
-		buffer_in_raw = malloc(RAW_CHUNK_SIZE);
-		if (buffer_in_raw == NULL)
+		raw_buffer_in = malloc(RAW_CHUNK_SIZE);
+		if (raw_buffer_in == NULL)
 			exit(1);
 
-		if (enc_mode) {
-			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				mbc_encode_inplace(buffer_in_raw, bytes_read);
-				fwrite(buffer_in_raw, 1, bytes_read, stdout);
+		while ((buffer_size_in = fread(raw_buffer_in, 1, RAW_CHUNK_SIZE, stdin))) {
+			hex_buffer_out = mbc_encode_to_hex(raw_buffer_in, buffer_size_in, uppercase);
+			if (hex_buffer_out == NULL) {
+				free(raw_buffer_in);
+				exit(1);
 			}
-		} else {
-			while ((bytes_read = fread(buffer_in_raw, 1, RAW_CHUNK_SIZE, stdin))) {
-				mbc_decode_inplace(buffer_in_raw, bytes_read);
-				fwrite(buffer_in_raw, 1, bytes_read, stdout);
-			}
+
+			fwrite(hex_buffer_out, 1, buffer_size_in * 2, stdout);
+			free(hex_buffer_out);
 		}
 
-		free(buffer_in_raw);
+		if (trailing_newline)
+			fputs("\n", stdout);
+
+		free(raw_buffer_in);
+	} else {
+
+		hex_buffer_in = malloc(HEX_CHUNK_SIZE + 1);
+		if (hex_buffer_in == NULL)
+			exit(1);
+
+		while ((buffer_size_in = fread(hex_buffer_in, 1, HEX_CHUNK_SIZE, stdin))) {
+			hex_buffer_in[buffer_size_in] = '\0';
+			raw_buffer_out = mbc_decode_from_hex(hex_buffer_in, &buffer_size_out);
+			if (raw_buffer_out == NULL) {
+				free(hex_buffer_in);
+				exit(1);
+			}
+
+			fwrite(raw_buffer_out, 1, buffer_size_out, stdout);
+			free(raw_buffer_out);
+		}
+
+		free(hex_buffer_in);
 	}
+}
+
+void raw_codec(bool enc_mode) {
+	uint8_t *buffer;
+	size_t buffer_size;
+	void (*codec)(uint8_t*, size_t);
+
+	buffer = malloc(RAW_CHUNK_SIZE);
+	if (buffer == NULL)
+		exit(1);
+
+	codec = enc_mode ? mbc_encode_inplace : mbc_decode_inplace;
+
+	while ((buffer_size = fread(buffer, 1, RAW_CHUNK_SIZE, stdin))) {
+		codec(buffer, buffer_size);
+		fwrite(buffer, 1, buffer_size, stdout);
+	}
+
+	free(buffer);
 }

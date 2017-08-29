@@ -10,19 +10,20 @@ target_include_directories(integration_tests PUBLIC "src" "test")
 
 target_link_libraries(integration_tests libmbc)
 
+# Add bash script
+add_custom_target(random_test
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		$(CMAKE_SOURCE_DIR)/test/integration/mbc.int.sh
+		mbc_random_test
+	DEPENDS mbc
+)
+
 # Add mbc_ prefix to executables
 set_target_properties(unit_tests PROPERTIES OUTPUT_NAME mbc_unit_tests)
 set_target_properties(integration_tests PROPERTIES OUTPUT_NAME mbc_integration_tests)
 
 
 if (UNIX)
-	add_custom_command(OUTPUT mbc_random_test
-		COMMAND ${CMAKE_COMMAND} -E copy
-			$(CMAKE_SOURCE_DIR)/test/integration/mbc.int.sh
-			mbc_random_test
-	)
-	add_custom_target(random_test DEPENDS mbc mbc_random_test)
-
 	add_custom_target(mbc_test
 		COMMAND ./mbc_unit_tests
 		COMMAND ./mbc_integration_tests

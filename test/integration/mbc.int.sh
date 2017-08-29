@@ -43,14 +43,14 @@ test_mbc() {
 	printf "[3/4] Running test... "
 
 	# ENCRYPT/DECRYPT "dummy_raw" into "dummy_raw_out"
-	../build/mbc -ek "$test_key" < dummy_raw | ../build/mbc -dk "$test_key" > dummy_raw_out
+	./mbc -ek "$test_key" < dummy_raw | ./mbc -dk "$test_key" > dummy_raw_out
 	if [ $? -ne 0 ]; then
 		printf "ERR!\n"
 		return 1
 	fi
 
 	# DECRYPT/ENCRYPT "dummy_hex" into "dummy_hex_out"
-	../build/mbc -dxk "$test_key" < dummy_hex | ../build/mbc -exk "$test_key" > dummy_hex_out
+	./mbc -dxk "$test_key" < dummy_hex | ./mbc -exnk "$test_key" > dummy_hex_out
 	if [ $? -eq 0 ]; then
 		printf "DONE.\n"
 	else

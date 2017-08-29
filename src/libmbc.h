@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2017 Matteo Bernardini
+ * Copyright (c) 2017 Marco Bonelli
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef LIBMBC_H_INCLUDED
 #define LIBMBC_H_INCLUDED
 
@@ -6,7 +23,7 @@
 #include <stdbool.h>
 
 /**
- * Sets the value of global `user_key` and calculates global `oct_key`.
+ * Sets the value of global `xor_key` and calculates global `swap_key`.
  * @ret `true` on success, `false` otherwise.
  * @pre `key` is an array of bytes; `key_size` > 0
  */
@@ -14,7 +31,7 @@ bool mbc_set_user_key(const uint8_t* key, size_t key_size);
 
 /**
  * Frees any dynamically allocated variables (basically the global keys).
- * @post `user_key` and `oct_key` are NULL pointers.
+ * @post `xor_key` is a NULL pointer; key sizes are zeroed.
  */
 void mbc_free(void);
 
