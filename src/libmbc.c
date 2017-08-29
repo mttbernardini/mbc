@@ -160,10 +160,12 @@ void mbc_encode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 				data[i] ^= key->swap_key[j];
 
 	/* XOR */
-	for (i = 0; i < data_size; i++)
-		data[i] ^= key->xor_key[i % key->xor_key_size];
-	for (; i < key->xor_key_size && data_size > 0; i++)
-		data[i % data_size] ^= key->xor_key[i];
+	if (data_size > 0) {
+		for (i = 0; i < data_size; i++)
+			data[i] ^= key->xor_key[i % key->xor_key_size];
+		for (; i < key->xor_key_size; i++)
+			data[i % data_size] ^= key->xor_key[i];
+	}
 }
 
 void mbc_decode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
@@ -171,10 +173,12 @@ void mbc_decode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 	register int_fast8_t j;
 
 	/* XOR */
-	for (i = 0; i < data_size; i++)
-		data[i] ^= key->xor_key[i % key->xor_key_size];
-	for (; i < key->xor_key_size && data_size > 0; i++)
-		data[i % data_size] ^= key->xor_key[i];
+	if (data_size > 0) {
+		for (i = 0; i < data_size; i++)
+			data[i] ^= key->xor_key[i % key->xor_key_size];
+		for (; i < key->xor_key_size; i++)
+			data[i % data_size] ^= key->xor_key[i];
+	}
 
 	/* SWAP */
 	for (i = 0; i < data_size; i++)
