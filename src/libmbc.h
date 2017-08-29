@@ -15,7 +15,12 @@ typedef struct mbc_token_s* mbc_token_t;
 mbc_token_t mbc_generate_token(const uint8_t* key, size_t key_size);
 
 /**
- * Frees token data.
+ * TODO: add doc
+ */
+void mbc_set_key_offset(mbc_key_t key, size_t chunk_size, size_t n_chunk);
+
+/**
+ * Frees key data.
  * @post `key` is an invalid pointer.
  */
 void mbc_free_token(mbc_token_t key);
@@ -33,6 +38,11 @@ void mbc_encode_inplace(mbc_token_t key, uint8_t* data, size_t data_size);
  * @post `data` contains decoded bytes.
  */
 void mbc_decode_inplace(mbc_token_t key, uint8_t* data, size_t data_size);
+
+/**
+ * TODO: add doc
+ */
+void mbc_encode_chunk_inplace(mbc_key_t key, uint8_t* chunk, size_t chunk_size);
 
 /**
  * Encodes data in a new array.
