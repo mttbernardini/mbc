@@ -94,7 +94,7 @@ All source files provide descriptive comments above functions prototypes and def
 
 [1]: https://github.com/mttbernardini/mbencrypter
 [2]: https://github.com/mttbernardini/mbc/releases
-[3]: https://github.com/mttbernardini/mbc/blob/developing/doc/notes.md#make_oct_key-rationale
+[3]: https://github.com/mttbernardini/mbc/blob/developing/doc/notes.md#make_swap_key-rationale
 
 [license-img]:   https://img.shields.io/github/license/mttbernardini/mbc.svg
 [license-link]:  https://github.com/mttbernardini/mbc/blob/developing/LICENSE
