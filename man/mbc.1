@@ -1,95 +1,93 @@
-=pod
+.TH MBC 1
 
-=head1 NAME
+.SH NAME
 
-mbc - encryption tool for libmbc
+mbc - encryption utility using the MBC algorithm
 
-=head1 SYNOPSIS
+.SH SYNOPSIS
 
-B<mbc> [B<-xun>] B<-e -k> I<key>
+.BR "mbc " [ -xun ] " -e -k"
+.I key
+.br
+.BR "mbc " [ -x ] " -d -k"
+.I key
+.br
+.BR "mbc " [ -vh ]
 
-B<mbc> [B<-x>] B<-d -k> I<key>
+.SH DESCRIPTION
 
-B<mbc> [B<-vh>]
+mbc is a quick tool for encoding/decoding data via stdio using libmbc, a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm (aka MBC algorithm).
 
-=head1 DESCRIPTION
+.SH OPTIONS
 
-mbc is a quick tool for encoding/decoding data via stdio using libmbc, a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm.
-
-=head1 OPTIONS
-
-=over 8
-
-=item B<-e>
-
+.TP
+.B -e
 Encodes data from stdio and outputs it to stdout.
 
-=item B<-d>
-
+.TP
+.B -d
 Decodes data from stdio and outputs it to stdout.
 
-=item B<-k> I<key>
-
+.TP
+.BI "-k " key
 Sets the key for the encryption.
 
-=item B<-x>
-
+.TP
+.B -x
 When encoding takes raw input from stdin and outputs encoded data as an hexadecimal string to stdout.
+.br
 When decoding takes an hexadecimal string representing encoded data from stdin and outputs raw decoded data to stdout.
 
-=item B<-u>
-
+.TP
+.B -u
 Output uppercase characters when encoding in hexadecimal mode.
 
-=item B<-n>
-
+.TP
+.B -n
 Do not output the trailing newline when encoding in hexadecimal mode.
+.br
 NB: the presence of the newline does not affect decoding.
 
-=item B<-v>
-
+.TP
+.B -v
 Shows program version and exits.
 
-=item B<-h>
-
+.TP
+.B -h
 Shows a brief help message and exits.
 
-=back
+.SH SECURITY CONSIDERATIONS
 
-=head1 SECURITY CONSIDERATIONS
-
-This program shall not be used in any production environment, nor for any kind of cryptographic purposes, since it does NOT use a secure encryption algorithm.
+This program shall not be used in any production environment, nor for any kind of cryptographic purposes, since it does \fBnot\fR use a secure encryption algorithm.
 
 This software is developed just for fun and educational purposes and is therefore provided "as is", without warranty of any kind.
 
-=head1 SEE ALSO
+.SH SEE ALSO
 
-L<libmbc(3)>
+.BR libmbc (3)
 
-=head1 AUTHORS
+.SH AUTHORS
 
 Matteo Bernardini & Marco Bonelli
 
-=head1 REPORTING BUGS
+.SH REPORTING BUGS
 
-Report bugs here: L<https://github.com/mttbernardini/mbc/issues>
+Report bugs here: https://github.com/mttbernardini/mbc/issues
 
-=head1 COPYRIGHT
+.SH COPYRIGHT
 
 Copyright (c) 2017 Matteo Bernardini
-
+.br
 Copyright (c) 2017 Marco Bonelli
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-L<http://www.apache.org/licenses/LICENSE-2.0>
+   http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-=cut
