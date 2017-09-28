@@ -6,13 +6,13 @@ mbc - encryption utility using the MBC algorithm
 
 .SH SYNOPSIS
 
-.BR "mbc " [ -xun ] " -e -k"
+.BR "mbc " [ -nux ] " -e -k"
 .I key
 .br
 .BR "mbc " [ -x ] " -d -k"
 .I key
 .br
-.BR "mbc " [ -vh ]
+.BR "mbc " { -h " | " -v }
 
 .SH DESCRIPTION
 
@@ -21,26 +21,20 @@ mbc is a quick tool for encoding/decoding data via stdio using libmbc, a C imple
 .SH OPTIONS
 
 .TP
-.B -e
-Encodes data from stdio and outputs it to stdout.
-
-.TP
 .B -d
 Decodes data from stdio and outputs it to stdout.
 
 .TP
+.B -e
+Encodes data from stdio and outputs it to stdout.
+
+.TP
+.B -h
+Shows a brief help message and exits.
+
+.TP
 .BI "-k " key
 Sets the key for the encryption.
-
-.TP
-.B -x
-When encoding takes raw input from stdin and outputs encoded data as an hexadecimal string to stdout.
-.br
-When decoding takes an hexadecimal string representing encoded data from stdin and outputs raw decoded data to stdout.
-
-.TP
-.B -u
-Output uppercase characters when encoding in hexadecimal mode.
 
 .TP
 .B -n
@@ -49,12 +43,18 @@ Do not output the trailing newline when encoding in hexadecimal mode.
 NB: the presence of the newline does not affect decoding.
 
 .TP
+.B -u
+Output uppercase characters when encoding in hexadecimal mode.
+
+.TP
 .B -v
 Shows program version and exits.
 
 .TP
-.B -h
-Shows a brief help message and exits.
+.B -x
+When encoding takes raw input from stdin and outputs encoded data as a hexadecimal string to stdout.
+.br
+When decoding takes a hexadecimal string representing encoded data from stdin and outputs raw decoded data to stdout.
 
 .SH SECURITY CONSIDERATIONS
 
