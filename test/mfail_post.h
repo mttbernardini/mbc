@@ -1,6 +1,0 @@
-#ifndef MFAIL_POST_H_INCLUDED
-#define MFAIL_POST_H_INCLUDED
-
-#undef MFAIL_H_REPLACE
-
-#endif

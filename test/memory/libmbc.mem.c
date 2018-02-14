@@ -1,6 +1,6 @@
-#include "../mfail_pre.h"
+#include "../mfail_enable.h"
 #include <libmbc.c>
-#include "../mfail_post.h"
+#include "../mfail_disable.h"
 
 #include <ctest.h>
 
