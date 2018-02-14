@@ -35,7 +35,7 @@ if (UNIX)
 		COMMAND ./mbc_memory_tests
 		COMMAND ./mbc_integration_tests
 		COMMAND ./mbc_random_test 512k 32k
-		DEPENDS unit_tests integration_tests random_test
+		DEPENDS unit_tests integration_tests memory_tests random_test
 		COMMENT "Running test..."
 	)
 else()
@@ -43,7 +43,7 @@ else()
 		COMMAND ./mbc_unit_tests
 		COMMAND ./mbc_memory_tests
 		COMMAND ./mbc_integration_tests
-		DEPENDS unit_tests integration_tests
+		DEPENDS unit_tests integration_tests memory_tests
 		COMMENT "Running test..."
 	)
 endif()

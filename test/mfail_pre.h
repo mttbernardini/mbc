@@ -1,5 +1,5 @@
-#ifndef MFAIL_H_INCLUDED
-#define MFAIL_H_INCLUDED
+#ifndef MFAIL_PRE_H_INCLUDED
+#define MFAIL_PRE_H_INCLUDED
 
 #include <stdlib.h>
 
