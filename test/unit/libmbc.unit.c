@@ -227,3 +227,16 @@ CTEST(libmbc, mbc_decode_from_hex__empty) {
 	free(decoded);
 	mbc_free_token(key);
 }
+
+/* TODO: Definitely needs to be done more seriously lol. */
+CTEST(libmbc, mbc_encode_with_offset) {
+	uint8_t data[9] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'};
+	
+	mbc_token_t key = mbc_generate_token((uint8_t[]){'a', 'X', 'h'}, 3);
+	ASSERT_NOT_NULL(key);
+	
+	mbc_set_offset(key, 4, 1);
+	mbc_encode_inplace(key, data + 4, 5);
+	ASSERT_DATA(((uint8_t[]){'\115', '\374', '\364', '\100', '\161'}), 5, data + 4, 5);
+	mbc_free_token(key);
+}
