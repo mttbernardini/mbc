@@ -137,6 +137,7 @@ mbc_token_t mbc_generate_token(const uint8_t* key, size_t key_size) {
 
 	memcpy(tok->xor_key, key, key_size);
 	tok->xor_key_size = key_size;
+	tok->xor_key_offset = 0;
 
 	tok->swap_key = make_swap_key(key, key_size, &(tok->swap_key_size));
 	if (tok->swap_key == NULL)
@@ -166,10 +167,10 @@ void mbc_encode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 
 	/* XOR */
 	if (data_size > 0) {
-		for (i = 0; i < data_size; i++)
-			data[i] ^= key->xor_key[i % key->xor_key_size];
-		for (; i < key->xor_key_size; i++)
-			data[i % data_size] ^= key->xor_key[i];
+		for (i = 0, j = key->xor_key_offset; i < data_size; i++, j++)
+			data[i] ^= key->xor_key[j % key->xor_key_size];
+		for (; i < key->xor_key_size; i++, j++)
+			data[i % data_size] ^= key->xor_key[j];
 	}
 }
 
@@ -179,10 +180,10 @@ void mbc_decode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 
 	/* XOR */
 	if (data_size > 0) {
-		for (i = 0; i < data_size; i++)
-			data[i] ^= key->xor_key[i % key->xor_key_size];
-		for (; i < key->xor_key_size; i++)
-			data[i % data_size] ^= key->xor_key[i];
+		for (i = 0, j = key->xor_key_offset; i < data_size; i++, j++)
+			data[i] ^= key->xor_key[j % key->xor_key_size];
+		for (; i < key->xor_key_size; i++, j++)
+			data[i % data_size] ^= key->xor_key[j];
 	}
 
 	/* SWAP */
