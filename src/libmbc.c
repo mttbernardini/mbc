@@ -12,6 +12,7 @@
 struct mbc_token_s {
 	uint8_t*  xor_key;
 	size_t    xor_key_size;
+	size_t    xor_key_offset;
 	uint8_t*  swap_key;
 	size_t    swap_key_size;
 };
