@@ -144,7 +144,7 @@ mbc_token_t mbc_generate_token(const uint8_t* key, size_t key_size) {
 	return tok;
 }
 
-void mbc_set_key_offset(mbc_token_t key, size_t chunk_size, size_t n_chunk) {
+void mbc_set_offset(mbc_token_t key, size_t chunk_size, size_t n_chunk) {
 	key->xor_key_offset = (chunk_size * n_chunk) % key->xor_key_size;
 }
 
