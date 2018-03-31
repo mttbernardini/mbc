@@ -144,17 +144,17 @@ mbc_token_t mbc_generate_token(const uint8_t* key, size_t key_size) {
 	return tok;
 }
 
-void mbc_set_key_offset(mbc_key_t key, size_t chunk_size, size_t n_chunk) {
+void mbc_set_key_offset(mbc_token_t key, size_t chunk_size, size_t n_chunk) {
 	key->xor_key_offset = (chunk_size * n_chunk) % key->xor_key_size;
 }
 
-void mbc_free_key(mbc_key_t key) {
+void mbc_free_token(mbc_token_t key) {
 	free(key->xor_key);
 	free(key->swap_key);
 	free(key);
 }
 
-void mbc_encode_inplace(mbc_key_t key, uint8_t* data, size_t data_size) {
+void mbc_encode_inplace(mbc_token_t key, uint8_t* data, size_t data_size) {
 	register size_t i, j;
 
 	/* SWAP */
