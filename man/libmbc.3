@@ -1,0 +1,129 @@
+.TH LIBMBC 3
+
+.SH NAME
+
+libmbc - encrypt and decrypt data using the MBC algorithm
+
+.SH SYNOPSIS
+.nf
+.B   #include <libmbc.h>
+
+.BI "bool mbc_set_user_key(const uint8_t *" key ", size_t " key_size );
+
+.B   void mbc_free(void);
+
+.BI "void mbc_encode_inplace(uint8_t *" data ", size_t " data_size );
+
+.BI "void mbc_decode_inplace(uint8_t *" data ", size_t " data_size );
+
+.BI "uint8_t* mbc_encode(const uint8_t *" data ", size_t " data_size );
+
+.BI "uint8_t* mbc_decode(const uint8_t *" data ", size_t " data_size );
+
+.BI "char* mbc_encode_to_hex(const uint8_t *" raw_in ,
+.BI "                        size_t " raw_size ", bool " uppercase );
+
+.BI "uint8_t* mbc_decode_from_hex(const char *" hex_in ,
+.BI "                             size_t *" decoded_size_ptr );
+
+.BI "char* mbc_raw_to_hex(const uint8_t *" raw ,
+.BI "                     size_t " raw_size ", bool " uppercase );
+
+.BI "uint8_t* mbc_hex_to_raw(const char *" hex ", size_t *" raw_size_ptr );
+
+.fi
+
+.SH DESCRIPTION
+
+.RB "Before an encoding/decoding session (i.e. a series of encodings/decodings sharing the same key), a key should be set using " mbc_set_user_key() " and freed afterwards with " mbc_free() .
+.br
+.RI "Using a " key_size " of 0 will result in undefined behavior*."
+
+.B  mbc_encode_inplace()
+encodes an array of bytes by altering it directly.
+.br
+.RI "A " data_size " of 0 makes the function nullipotent."
+
+.B  mbc_decode_inplace()
+decodes an array of bytes by altering it directly.
+.br
+.RI "A " data_size " of 0 makes the function nullipotent."
+
+.B  mbc_encode()
+encodes an array of bytes in a new array.
+.br
+.RI "A " data_size " of 0 causes undefined behavior*."
+
+.B  mbc_decode()
+decodes an array of bytes in a new array.
+.br
+.RI "A " data_size " of 0 causes undefined behavior*."
+
+.B  mbc_encode_to_hex()
+encodes an array of bytes in a hexadecimal C string.
+.RI "If " uppercase " is true, uppercase letters are produced."
+.br
+.RI "A " data_size " of 0 produces an empty string."
+
+.B   mbc_decode_from_hex()
+.RI "decodes a hexadecimal C string in a new array of bytes and " *raw_size_ptr " will contain its size."
+.br
+An empty string causes undefined behavior*.
+
+.B  mbc_raw_to_hex()
+converts an array of bytes into a hexadecimal C string.
+.RI "If " uppercase " is true, uppercase letters are used."
+.br
+.RI "A " data_size " of 0 produces an empty string."
+
+.B  mbc_hex_to_raw()
+.RI "converts a hexadecimal C string into an array of bytes with " *raw_size_ptr " containing its size."
+.br
+An empty string causes undefined behavior*.
+
+* this kind of undefined behavior is caused by the call of
+.B malloc(0)
+which is platform dependent.
+
+.SH RETURN VALUE
+
+.RI "Functions returning a " uint8_t* " or " char* " return a newly allocated array or C string."
+.BR NULL " is returned if memory cannot be allocated."
+
+.BR mbc_set_user_key() " returns " true " if the key has been correctly set, " false " otherwhise (mainly due to memory allocation failure)."
+
+.SH SECURITY CONSIDERATIONS
+
+This library shall not be used in any production environment, nor for any kind of cryptographic purposes, since it does \fBnot\fR provide a secure encryption algorithm.
+
+This software is developed just for fun and educational purposes and is therefore provided "as is", without warranty of any kind.
+
+.SH SEE ALSO
+
+.BR mbc (1)
+
+.SH AUTHORS
+
+Matteo Bernardini & Marco Bonelli
+
+.SH REPORTING BUGS
+
+Report bugs here: https://github.com/mttbernardini/mbc/issues
+
+.SH COPYRIGHT
+
+Copyright (c) 2017 Matteo Bernardini
+.br
+Copyright (c) 2017 Marco Bonelli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
