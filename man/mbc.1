@@ -1,0 +1,93 @@
+.TH MBC 1
+
+.SH NAME
+
+mbc - encryption utility using the MBC algorithm
+
+.SH SYNOPSIS
+
+.BR "mbc " [ -nux ] " -e -k"
+.I key
+.br
+.BR "mbc " [ -x ] " -d -k"
+.I key
+.br
+.BR "mbc " { -h " | " -v }
+
+.SH DESCRIPTION
+
+mbc is a quick tool for encoding/decoding data via stdio using libmbc, a C implementation of the Mattyw & MeBeiM symmetric encryption algorithm (aka MBC algorithm).
+
+.SH OPTIONS
+
+.TP
+.B -d
+Decodes data from stdio and outputs it to stdout.
+
+.TP
+.B -e
+Encodes data from stdio and outputs it to stdout.
+
+.TP
+.B -h
+Shows a brief help message and exits.
+
+.TP
+.BI "-k " key
+Sets the key for the encryption.
+
+.TP
+.B -n
+Do not output the trailing newline when encoding in hexadecimal mode.
+.br
+NB: the presence of the newline does not affect decoding.
+
+.TP
+.B -u
+Output uppercase characters when encoding in hexadecimal mode.
+
+.TP
+.B -v
+Shows program version and exits.
+
+.TP
+.B -x
+When encoding takes raw input from stdin and outputs encoded data as a hexadecimal string to stdout.
+.br
+When decoding takes a hexadecimal string representing encoded data from stdin and outputs raw decoded data to stdout.
+
+.SH SECURITY CONSIDERATIONS
+
+This program shall not be used in any production environment, nor for any kind of cryptographic purposes, since it does \fBnot\fR use a secure encryption algorithm.
+
+This software is developed just for fun and educational purposes and is therefore provided "as is", without warranty of any kind.
+
+.SH SEE ALSO
+
+.BR libmbc (3)
+
+.SH AUTHORS
+
+Matteo Bernardini & Marco Bonelli
+
+.SH REPORTING BUGS
+
+Report bugs here: https://github.com/mttbernardini/mbc/issues
+
+.SH COPYRIGHT
+
+Copyright (c) 2017 Matteo Bernardini
+.br
+Copyright (c) 2017 Marco Bonelli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

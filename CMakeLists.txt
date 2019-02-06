@@ -48,3 +48,6 @@ install(FILES "src/libmbc.h" DESTINATION include)
 
 # Include cmake file for tests
 include("test/CMakeLists.txt")
+
+# Include cmake file for manpages
+include("man/CMakeLists.txt")

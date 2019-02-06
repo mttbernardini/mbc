@@ -82,7 +82,7 @@ char* mbc_encode_to_hex(const uint8_t* raw_in, size_t raw_size, bool uppercase);
 uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr);
 
 /**
- * Converts raw data into an hexadecimal string.
+ * Converts raw data into a hexadecimal string.
  * @ret  NUL-terminated hexadecimal string, `NULL` if the string cannot be allocated.
  * @pre  `raw` is an array of bytes; `raw_size > 0`.
  * @post The length of the returned string is double the size of the `raw` array, containing only lower/uppercase (accordingly to `uppercase`) hexadecimal ASCII characters.
@@ -90,7 +90,7 @@ uint8_t* mbc_decode_from_hex(const char* hex_in, size_t* decoded_size_ptr);
 char* mbc_raw_to_hex(const uint8_t* raw, size_t raw_size, bool uppercase);
 
 /**
- * Converts hexadecimal string into raw data.
+ * Converts a hexadecimal string into raw data.
  * @ret  Raw data array, `NULL` if the array cannot be allocated.
  * @pre  `hex` is a non-empty NUL-terminated string containing only lower/uppercase hexadecimal ASCII characters.
  *       If the length of the string is not even the last extra char is discarded.
