@@ -4,6 +4,7 @@
 [![travis][travis-img]][travis-link]
 [![appveyor][appveyor-img]][appveyor-link]
 [![codecov][codecov-img]][codecov-link]
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmttbernardini%2Fmbc.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmttbernardini%2Fmbc?ref=badge_shield)
 
 This repository provides a C library for the *MBC symmetric encryption algorithm*, plus a parametric CLI program.
 
@@ -104,3 +105,7 @@ All source files provide descriptive comments above functions prototypes and def
 [appveyor-link]: https://ci.appveyor.com/project/mttbernardini/mbc/branch/master
 [codecov-img]:   https://img.shields.io/codecov/c/github/mttbernardini/mbc/master.svg
 [codecov-link]:  https://codecov.io/gh/mttbernardini/mbc/branch/master
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmttbernardini%2Fmbc.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmttbernardini%2Fmbc?ref=badge_large)
